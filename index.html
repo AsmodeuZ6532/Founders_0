@@ -1818,7 +1818,7 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
         <div class="login-only"><div>
           <div class="auth__row">
             <label class="check"><input type="checkbox" id="remember" checked=""><span></span>Запомнить меня</label>
-            <a href="#" id="forgot">Забыли пароль?</a>
+            <a href="#" id="forgot">Забыли пароль?</a><span style="color:#686d7b">·</span><a href="#" id="recoveryReady" style="color:#c6ff3d">Уже открыл ссылку?</a>
           </div>
         </div></div>
 
@@ -1918,6 +1918,15 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
 
 <script>
 window.addEventListener("error",e=>{try{const t=document.getElementById("toast");if(t){t.textContent="Ошибка: "+(e.message||"неизвестная");t.classList.add("is-show")}}catch(_){}});
+</script>
+<script>
+// Capture the password recovery URL before Supabase JS processes and cleans it.
+window.__foundersRecoveryHint = (() => {
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(location.search);
+  return hash.get("type") === "recovery" || query.get("type") === "recovery" ||
+    !!query.get("code") || (!!hash.get("access_token") && !!hash.get("refresh_token"));
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2115,7 +2124,7 @@ addEventListener("resize",()=>{if(!$("#auth").hidden)startBg()});
 
 /* ================= АВТОРИЗАЦИЯ (email + пароль) ================= */
 /* Supabase recovery: password reset links, including hash and PKCE code flows. */
-const recoveryLinkDetected=(new URLSearchParams(location.hash.replace(/^#/,""))).get("type")==="recovery" || new URLSearchParams(location.search).get("type")==="recovery";
+const recoveryLinkDetected=Boolean(window.__foundersRecoveryHint);
 let recoveryOpened=false;
 function showRecoveryForm(){
   if(recoveryOpened)return;
@@ -2143,9 +2152,17 @@ function showRecoveryForm(){
     if(password!==again){status.textContent="Пароли не совпадают";return}
     button.disabled=true;status.textContent="Сохраняем…";
     try{
-      const {data:{session},error:sessionError}=await sbClient.auth.getSession();
+      let {data:{session},error:sessionError}=await sbClient.auth.getSession();
       if(sessionError)throw sessionError;
-      if(!session)throw new Error("Ссылка восстановления истекла. Запросите новую ссылку позднее.");
+      if(!session){
+        const code=new URLSearchParams(location.search).get("code");
+        if(code){
+          const {data,error}=await sbClient.auth.exchangeCodeForSession(code);
+          if(error)throw error;
+          session=data.session;
+        }
+      }
+      if(!session)throw new Error("Нет активной сессии восстановления. Откройте новую ссылку из письма в этом браузере.");
       const {error}=await sbClient.auth.updateUser({password});
       if(error)throw error;
       status.style.color="#c6ff3d";
@@ -2276,7 +2293,27 @@ async function submitAuth(){
   },900);
 }
 $("#guestBtn").addEventListener("click",e=>{e.preventDefault();enterApp({name:"Гость",email:"Без аккаунта",guest:true},false)});
-$("#forgot").addEventListener("click",e=>{e.preventDefault();toast("Восстановление пароля работает только на сайте с сервером")});
+$("#forgot").addEventListener("click",async e=>{
+  e.preventDefault();
+  const email=$("#fEmail").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast("Введите email аккаунта Supabase в поле почты, затем нажмите «Забыли пароль?»");
+    $("#fEmail").focus();return;
+  }
+  toast("Отправляем письмо восстановления…");
+  const {error}=await sbClient.auth.resetPasswordForEmail(email,{
+    redirectTo:"https://asmodeuz6532.github.io/Founders_0/"
+  });
+  if(error)toast("Не удалось отправить письмо: "+error.message);
+  else toast("Письмо отправлено. Откройте ссылку из нового письма.");
+});
+$("#recoveryReady").addEventListener("click",async e=>{
+  e.preventDefault();
+  const {data,error}=await sbClient.auth.getSession();
+  if(error){toast("Ошибка Supabase: "+error.message);return}
+  if(data?.session){showRecoveryForm();return}
+  toast("Сессия восстановления отсутствует. Откройте ссылку из письма или запросите новую.");
+});
 function success(user,remember){
   $("#welcomeName").textContent=user.name;
   card.classList.add("is-done");

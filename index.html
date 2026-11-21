@@ -1757,7 +1757,69 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}body{overscroll-behavio
       margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;
       
     }
-html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}html,body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,Arial,sans-serif!important}button,input,textarea,select{font-family:inherit}html{background-color:transparent}html.chatgptOled.dark,html.mobileSkybridge.dark{background-color:#000}@supports (font: -apple-system-body){html.mobileSkybridge{font:-apple-system-body}}html.desktopSkybridge.dark{background-color:#1e1e1e}html.transparentSkybridgeBackground,html.transparentSkybridgeBackground.dark{background-color:transparent}html.androidSkybridge,html.androidSkybridge body,html.androidSkybridge *{-webkit-tap-highlight-color:rgba(255,255,255,0)}html.androidSkybridge *::selection,html.androidSkybridge *::-moz-selection{background:#fff0;color:inherit}</style></head>
+html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}html,body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,Arial,sans-serif!important}button,input,textarea,select{font-family:inherit}html{background-color:transparent}html.chatgptOled.dark,html.mobileSkybridge.dark{background-color:#000}@supports (font: -apple-system-body){html.mobileSkybridge{font:-apple-system-body}}html.desktopSkybridge.dark{background-color:#1e1e1e}html.transparentSkybridgeBackground,html.transparentSkybridgeBackground.dark{background-color:transparent}html.androidSkybridge,html.androidSkybridge body,html.androidSkybridge *{-webkit-tap-highlight-color:rgba(255,255,255,0)}html.androidSkybridge *::selection,html.androidSkybridge *::-moz-selection{background:#fff0;color:inherit}</style>
+<style id="founders-advanced-stats-css">
+.founders-player-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.founders-player-stats .ptile{min-width:0}
+.founders-player-stats .ptile--main{grid-column:span 2}
+.founders-detail-stats{padding:18px}
+.detail-stat{margin:15px 0}
+.detail-stat__head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.detail-stat__head strong{font-variant-numeric:tabular-nums}
+.detail-stat__track{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:8px}
+.detail-stat__track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#397fc5,#9ac8f4)}
+.detail-stat__note{font-size:12px;color:var(--muted);line-height:1.5;margin:14px 0 0}
+@media(min-width:760px){.founders-player-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.founders-player-stats .ptile--main{grid-column:span 1}}
+
+/* FOUNDERS 2026: responsive administration / stats / Graphics Studio */
+.cs-import{border:1px solid rgba(105,210,255,.23);background:linear-gradient(135deg,rgba(54,151,221,.08),transparent 75%);border-radius:16px;padding:16px}
+.cs-import__note{font-size:12px;line-height:1.6;color:var(--muted);margin:9px 0 0}
+.cs-stats-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line-2);border-radius:12px;margin-top:12px}
+.cs-stats-table{min-width:1050px;width:100%;margin:0!important;border-collapse:separate;border-spacing:0}
+.cs-stats-table th,.cs-stats-table td{padding:9px 7px!important;white-space:nowrap;text-align:center}
+.cs-stats-table th:first-child,.cs-stats-table td:first-child{position:sticky;left:0;z-index:2;min-width:126px;text-align:left;background:var(--surface);box-shadow:1px 0 0 var(--line-2)}
+.cs-stats-table .inp--s{width:72px!important;min-width:72px;text-align:center;box-sizing:border-box}
+.cs-stats-table tbody tr:nth-child(even){background:rgba(127,127,127,.035)}
+.founders-player-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.founders-player-stats .ptile{min-width:0}
+.founders-detail-stats{min-width:0}
+.gs-layout{min-width:0}
+.gs-controls,.gs-preview-wrap{min-width:0}
+#gsCanvas{display:block;width:100%;max-width:540px;height:auto;aspect-ratio:4/5;margin-inline:auto}
+.gs-actions{display:flex;flex-wrap:wrap;gap:10px}
+@media(max-width:900px){
+ .adm{display:block!important;min-width:0}
+ .adm__nav{display:flex!important;overflow-x:auto;max-width:100%;gap:6px;padding:8px 0 14px;scrollbar-width:thin;position:static!important}
+ .adm__nav button{flex:0 0 auto;white-space:nowrap;min-height:42px}
+ #admMain{width:100%;min-width:0}
+ .gs-layout{display:grid!important;grid-template-columns:1fr!important;gap:20px}
+ .gs-controls{order:1}.gs-preview-wrap{order:2}
+ .modal__box{max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}
+ .modal{padding:10px}
+ .fgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .stat-ed{max-width:100%;overflow:hidden}
+ .srow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .srow>*{min-width:0;width:100%}
+ .vrow{display:flex;flex-wrap:wrap;gap:7px}.vrow>*{min-width:0}
+ .mrow-ed{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+ .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media(max-width:600px){
+ .fgrid{grid-template-columns:minmax(0,1fr)!important}
+ .founders-player-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .founders-player-stats .ptile{padding:14px 10px}
+ .stats-head{display:block}.stats-head>div{margin-top:12px}
+ .stbl{min-width:460px}
+ .cs-stats-scroll{margin-inline:-4px;width:calc(100% + 8px)}
+ .gs-actions .btn{flex:1 1 150px}
+ .gs-preview-wrap{padding:10px!important}
+ .gs-controls{padding:12px!important}
+ .arow{gap:8px;flex-wrap:wrap}.arow__acts{display:flex;flex-wrap:wrap;gap:6px}
+ .modal__box{border-radius:14px}
+ .sec{min-width:0}
+}
+</style>
+</head>
 <body class="is-booting">
 <div class="boot" id="boot" aria-hidden="true">
   <div class="boot__glow boot__glow--a"></div><div class="boot__glow boot__glow--b"></div><div class="boot__grid"></div>
@@ -1818,7 +1880,7 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
         <div class="login-only"><div>
           <div class="auth__row">
             <label class="check"><input type="checkbox" id="remember" checked=""><span></span>Запомнить меня</label>
-            <a href="#" id="forgot">Забыли пароль?</a><span style="color:#686d7b">·</span><a href="#" id="recoveryReady" style="color:#c6ff3d">Уже открыл ссылку?</a>
+            <a href="#" id="forgot">Забыли пароль?</a>
           </div>
         </div></div>
 
@@ -1919,15 +1981,6 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
 <script>
 window.addEventListener("error",e=>{try{const t=document.getElementById("toast");if(t){t.textContent="Ошибка: "+(e.message||"неизвестная");t.classList.add("is-show")}}catch(_){}});
 </script>
-<script>
-// Capture the password recovery URL before Supabase JS processes and cleans it.
-window.__foundersRecoveryHint = (() => {
-  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
-  const query = new URLSearchParams(location.search);
-  return hash.get("type") === "recovery" || query.get("type") === "recovery" ||
-    !!query.get("code") || (!!hash.get("access_token") && !!hash.get("refresh_token"));
-})();
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_PROJECT_URL="https://avkjesamehrqzxpaaely.supabase.co";
@@ -1973,8 +2026,11 @@ const STREAMERS = [];
 const SAVE_KEY="fz-data-v2";
 (function loadData(){
   let saved=null;try{saved=JSON.parse(localStorage.getItem(SAVE_KEY))}catch(e){}
-  const src=(BAKED&&Array.isArray(BAKED.teams))?BAKED:saved; // Restore embedded export first, otherwise browser backup.
-  if(src&&Array.isArray(src.teams)&&Array.isArray(src.matches)){Object.keys(DATA).forEach(k=>delete DATA[k]);Object.assign(DATA,src)}
+  // Prefer the browser backup so edits from the admin panel are not overwritten by the older embedded snapshot.
+  // The authenticated cloud payload is loaded afterwards and remains the shared source of truth.
+  const valid=x=>x&&Array.isArray(x.teams)&&Array.isArray(x.matches)&&Array.isArray(x.events);
+  const src=valid(saved)?saved:(valid(BAKED)?BAKED:null);
+  if(src){Object.keys(DATA).forEach(k=>delete DATA[k]);Object.assign(DATA,src)}
   DATA.settings=Object.assign({sim:false,tourV:1},DATA.settings);
 })();
 const OWNER={nick:"AsmodeuZ",emailHash:"e882f8f73592c44ec6e97c7e3df30757ffa73319e7dd74781060f7ea1a2c38d8",passHash:"64f643716ac6e5f3f4f0dff4f66342ad19744c5249bbd21331b335cba2870eec"};
@@ -2068,7 +2124,7 @@ function rawMap(m,mi,side){
   return [1,2].map(k=>{
     const t=team[m["t"+k]];
     return t.players.map((pl,pi)=>({pl,pi})).filter(({pl,pi})=>!isReservePlayer(pl)||!!(st["t"+k]||[])[pi]?.k).map(({pl,pi})=>{const man=(st["t"+k]||[])[pi]||{};
-      return {pi,nick:pl[0],real:pl[1],c:pl[2],k:+man.k||0,d:+man.d||0,rounds:R,adr:+man.adr||0,kast:+man.kast||0}});
+      return {pi,nick:pl[0],real:pl[1],c:pl[2],k:+man.k||0,d:+man.d||0,a:+man.a||0,rounds:R,adr:+man.adr||0,kast:+man.kast||0,aim:man.aim==null?null:+man.aim,impact:man.impact==null?null:+man.impact,economy:man.economy==null?null:+man.economy,utility:man.utility==null?null:+man.utility,positioning:man.positioning==null?null:+man.positioning}});
   });
 }
 function finalize(p){
@@ -2082,9 +2138,13 @@ function matchStats(m,which,side){
   const sets=idxs.map(i=>rawMap(m,i,side)).filter(Boolean);
   if(!sets.length)return null;
   return [0,1].map(ti=>sets[0][ti].map((_,pi)=>{
-    const agg={...sets[0][ti][pi],k:0,d:0,rounds:0,adr:0,kast:0};
-    sets.forEach(s=>{const p=s[ti][pi];agg.k+=p.k;agg.d+=p.d;agg.rounds+=p.rounds;agg.adr+=p.adr*p.rounds;agg.kast+=p.kast*p.rounds});
+    const agg={...sets[0][ti][pi],k:0,d:0,a:0,rounds:0,adr:0,kast:0,aim:0,impact:0,economy:0,utility:0,positioning:0};
+    const detailN={aim:0,impact:0,economy:0,utility:0,positioning:0};
+    sets.forEach(s=>{const p=s[ti][pi];agg.k+=p.k;agg.d+=p.d;agg.a+=p.a||0;agg.rounds+=p.rounds;agg.adr+=p.adr*p.rounds;agg.kast+=p.kast*p.rounds;
+      for(const f of Object.keys(detailN)){if(p[f]!=null){agg[f]+=p[f]*p.rounds;detailN[f]+=p.rounds}}
+    });
     agg.adr/=agg.rounds;agg.kast/=agg.rounds;
+    for(const f of Object.keys(detailN))agg[f]=detailN[f]?agg[f]/detailN[f]:null;
     return finalize(agg);
   }).sort((a,b)=>b.rating-a.rating));
 }
@@ -2123,66 +2183,6 @@ function stopBg(){cancelAnimationFrame(rafId);rafId=null}
 addEventListener("resize",()=>{if(!$("#auth").hidden)startBg()});
 
 /* ================= АВТОРИЗАЦИЯ (email + пароль) ================= */
-/* Supabase recovery: password reset links, including hash and PKCE code flows. */
-const recoveryLinkDetected=Boolean(window.__foundersRecoveryHint);
-let recoveryOpened=false;
-function showRecoveryForm(){
-  if(recoveryOpened)return;
-  recoveryOpened=true;
-  const panel=document.createElement("section");
-  panel.id="foundersRecovery";
-  panel.style.cssText="position:fixed;z-index:10001;inset:0;background:rgba(8,9,13,.97);display:grid;place-items:center;padding:20px;color:#eef0f6;font-family:Inter,system-ui,sans-serif";
-  panel.innerHTML=`<form id="foundersRecoveryForm" style="background:#181b25;border:1px solid rgba(198,255,61,.35);border-radius:20px;padding:30px;max-width:440px;width:100%;display:grid;gap:14px">
-    <h2 style="font-size:23px;margin:0;color:#c6ff3d">Новый пароль FOUNDERS</h2>
-    <p style="margin:0;color:#aeb2c4">Введите новый пароль для аккаунта Supabase. Минимум 8 символов.</p>
-    <input id="foundersNewPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Новый пароль" style="background:#101219;border:1px solid #555;border-radius:10px;padding:13px;color:white;width:100%">
-    <input id="foundersRepeatPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Повторите пароль" style="background:#101219;border:1px solid #555;border-radius:10px;padding:13px;color:white;width:100%">
-    <p id="foundersRecoveryStatus" role="status" style="font-size:13px;color:#ff8ba0;margin:0"></p>
-    <button type="submit" style="background:#c6ff3d;color:#101219;border:0;border-radius:10px;padding:14px;font-weight:bold">Сохранить новый пароль</button>
-    <a href="https://asmodeuz6532.github.io/Founders_0/" style="color:#b9c1d4;text-align:center">Назад к входу</a>
-  </form>`;
-  document.body.appendChild(panel);
-  panel.querySelector("form").addEventListener("submit",async ev=>{
-    ev.preventDefault();
-    const password=panel.querySelector("#foundersNewPassword").value;
-    const again=panel.querySelector("#foundersRepeatPassword").value;
-    const status=panel.querySelector("#foundersRecoveryStatus");
-    const button=panel.querySelector('button[type="submit"]');
-    if(password.length<8){status.textContent="Минимум 8 символов";return}
-    if(password!==again){status.textContent="Пароли не совпадают";return}
-    button.disabled=true;status.textContent="Сохраняем…";
-    try{
-      let {data:{session},error:sessionError}=await sbClient.auth.getSession();
-      if(sessionError)throw sessionError;
-      if(!session){
-        const code=new URLSearchParams(location.search).get("code");
-        if(code){
-          const {data,error}=await sbClient.auth.exchangeCodeForSession(code);
-          if(error)throw error;
-          session=data.session;
-        }
-      }
-      if(!session)throw new Error("Нет активной сессии восстановления. Откройте новую ссылку из письма в этом браузере.");
-      const {error}=await sbClient.auth.updateUser({password});
-      if(error)throw error;
-      status.style.color="#c6ff3d";
-      status.textContent="Пароль изменён! Сейчас можно войти с новым паролем.";
-      await sbClient.auth.signOut();
-      store.del("fz-session");
-      panel.querySelectorAll("input").forEach(x=>{x.value="";x.disabled=true});
-      button.textContent="Пароль сохранён";
-      history.replaceState({},"",location.pathname);
-    }catch(err){status.textContent=err.message||"Не удалось сменить пароль";button.disabled=false}
-  });
-}
-sbClient.auth.onAuthStateChange((event,session)=>{
-  if(event==="PASSWORD_RECOVERY")showRecoveryForm();
-});
-if(recoveryLinkDetected){
-  // Supabase consumes recovery URL tokens asynchronously. Keep the reset form visible.
-  showRecoveryForm();
-}
-
 const card=$("#authCard"), form=$("#authForm");
 let mode="login";
 // Демо-хэш. На настоящем сайте пароли проверяет сервер.
@@ -2293,27 +2293,7 @@ async function submitAuth(){
   },900);
 }
 $("#guestBtn").addEventListener("click",e=>{e.preventDefault();enterApp({name:"Гость",email:"Без аккаунта",guest:true},false)});
-$("#forgot").addEventListener("click",async e=>{
-  e.preventDefault();
-  const email=$("#fEmail").value.trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    toast("Введите email аккаунта Supabase в поле почты, затем нажмите «Забыли пароль?»");
-    $("#fEmail").focus();return;
-  }
-  toast("Отправляем письмо восстановления…");
-  const {error}=await sbClient.auth.resetPasswordForEmail(email,{
-    redirectTo:"https://asmodeuz6532.github.io/Founders_0/"
-  });
-  if(error)toast("Не удалось отправить письмо: "+error.message);
-  else toast("Письмо отправлено. Откройте ссылку из нового письма.");
-});
-$("#recoveryReady").addEventListener("click",async e=>{
-  e.preventDefault();
-  const {data,error}=await sbClient.auth.getSession();
-  if(error){toast("Ошибка Supabase: "+error.message);return}
-  if(data?.session){showRecoveryForm();return}
-  toast("Сессия восстановления отсутствует. Откройте ссылку из письма или запросите новую.");
-});
+$("#forgot").addEventListener("click",e=>{e.preventDefault();toast("Восстановление пароля работает только на сайте с сервером")});
 function success(user,remember){
   $("#welcomeName").textContent=user.name;
   card.classList.add("is-done");
@@ -2794,13 +2774,13 @@ function viewMatch(id){
     const data=matchStats(m,st.tab,st.side);
     if(!data){$("#mStats").innerHTML=`<div class="note">Статистика появится после начала матча</div>`;return}
     $("#mStats").innerHTML=[a,b].map((t,ti)=>`<div class="tbl-wrap"><table class="stbl">
-      <thead><tr><th><a href="#/team/${t.id}" class="tlink">${badge(t)}${esc(t.name)}</a></th><th>У–С</th><th>Влияние</th><th>ADR</th><th>KAST</th><th>Рейтинг</th></tr></thead>
+      <thead><tr><th><a href="#/team/${t.id}" class="tlink">${badge(t)}${esc(t.name)}</a></th><th>K/D/A</th><th>SWING</th><th>ADR</th><th>RATING</th></tr></thead>
       <tbody>${data[ti].map(p=>`<tr>
         <td>${playerProfileLink(t.id,p.pi,p.nick,`${flag(p.c)}<span><b>${esc(p.nick)}</b><small>${esc(p.real)}</small></span>`,"pl tlink")}</td>
-        <td data-l="У–С">${p.k}–${p.d}</td>
-        <td data-l="Влияние" class="${p.swing>=0?"pos":"neg"}">${p.swing>=0?"+":""}${p.swing.toFixed(2)}%</td>
-        <td data-l="ADR">${p.adr.toFixed(1)}</td><td data-l="KAST">${p.kast.toFixed(1)}%</td>
-        <td data-l="Рейтинг"><span class="rt ${p.rating>=1.1?"pos":p.rating<.95?"neg":""}">${p.rating.toFixed(2)}</span></td></tr>`).join("")}</tbody></table></div>`).join("");
+        <td data-l="K/D/A">${p.k}/${p.d}/${p.a||0}</td>
+        <td data-l="SWING" class="${p.swing>=0?"pos":"neg"}">${p.swing>=0?"+":""}${p.swing.toFixed(2)}%</td>
+        <td data-l="ADR">${p.adr.toFixed(1)}</td>
+        <td data-l="RATING"><span class="rt ${p.rating>=1.1?"pos":p.rating<.95?"neg":""}">${p.rating.toFixed(2)}</span></td></tr>`).join("")}</tbody></table></div>`).join("");
   };
 
   const mvp=()=>{
@@ -2941,7 +2921,8 @@ function playerInfo(t,i){
   const key=t.id+":"+i;if(_pc[key])return _pc[key];
   const [nick,real,c]=t.players[i];
   const ti=teamInfo(t);
-  let maps=0,k=0,d=0,rounds=0,adrS=0,kastS=0;const form=[];
+  let maps=0,k=0,d=0,rounds=0,adrS=0,kastS=0,swingS=0;const form=[];
+  const detailS={aim:0,impact:0,economy:0,utility:0,positioning:0},detailN={aim:0,impact:0,economy:0,utility:0,positioning:0};
   DATA.matches.slice().sort((a,b)=>a.id-b.id).forEach(m=>{
     const side=m.t1===t.id?"t1":m.t2===t.id?"t2":null;if(!side||!m.stats||!m.mapScores)return;
     m.mapScores.forEach((sc,mi)=>{
@@ -2949,12 +2930,15 @@ function playerInfo(t,i){
       const R=(+sc[0]||0)+(+sc[1]||0);if(!R)return;
       const kk=+st.k||0,dd=+st.d||0,a=+st.adr||0,ks=+st.kast||0;
       maps++;k+=kk;d+=dd;rounds+=R;adrS+=a*R;kastS+=ks*R;
+      const mapSwing=(kk/R-dd/R)*8+(a-75)*.05;swingS+=mapSwing*R;
+      for(const f of Object.keys(detailS)){if(st[f]!==undefined&&st[f]!==null&&st[f]!==""){detailS[f]+=Number(st[f])*R;detailN[f]+=R}}
       form.push(+Math.max(.3,Math.min(2.2,.12+kk/R*.75+(.68-dd/R)*.75+a*.0035+ks*.0022)).toFixed(2));
     });
   });
   const has=maps>0,kr=has?k/rounds:null,dpr=has?d/rounds:null,adr=has?adrS/rounds:null,kast=has?kastS/rounds:null;
   const rating=has?Math.max(.3,Math.min(2.2,.12+kr*.75+(.68-dpr)*.75+adr*.0035+kast*.0022)):null;
-  return _pc[key]={team:t,idx:i,nick,real:real||"",c,photo:t.players[i][3]||"",maps,k,d,kr,kd:has?k/Math.max(1,d):null,adr,kast,rating,avg:has?k/maps:null,
+  const detail={};for(const f of Object.keys(detailS))detail[f]=detailN[f]?detailS[f]/detailN[f]:null;
+  return _pc[key]={team:t,idx:i,nick,real:real||"",c,photo:t.players[i][3]||"",maps,k,d,kr,kpr:kr,dpr,kd:has?k/Math.max(1,d):null,adr,kast,swing:has?swingS/rounds:null,rating,avg:has?k/maps:null,detail,
     role:i===ti.captain?"Капитан":"Игрок",status:isReservePlayer(t.players[i])?"reserve":"main",captain:i===ti.captain,form:form.slice(-8),trophies:[]};
 }
 // Матчи команды: реальные из расписания + прошлые результаты
@@ -3083,15 +3067,19 @@ function viewPlayer(tid,i){
     <div class="mx" style="margin-top:28px">
       <div>
         <div class="box__h" style="margin-bottom:14px"><h3 class="h h--sm">Статистика</h3><small style="color:var(--muted)">${p.maps?`${p.maps} ${plural(p.maps,"карта","карты","карт")} на турнирах FOUNDERS`:"появится после первых матчей"}</small></div>
-        <div class="pstats">
-          <div class="ptile ptile--main" style="--i:0">
-            <div class="gauge"><svg viewBox="0 0 120 120"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#c6ff3d"/></linearGradient></defs><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" id="gaugeFg" cx="60" cy="60" r="54" data-v="${p.rating==null?0:((p.rating-.6)/1).toFixed(3)}"/></svg>
-              <div class="gauge__v"><div>${cnt(p.rating,2)}<span>Рейтинг</span></div></div></div>
-            <div class="spark" id="spark"${p.form.length>1?"":" hidden"}><small>Рейтинг по последним картам</small><svg viewBox="0 0 300 46" preserveAspectRatio="none"><polyline points="${pts}"/></svg></div>
-          </div>
-          <div class="ptile" style="--i:1"><small>K/D</small>${cnt(p.kd,2)}<p>убийств на одну смерть</p><div class="ptile__bar"><i data-w="${p.kd==null?"0%":pct(p.kd,.7,1.6)}"></i></div></div>
-          <div class="ptile" style="--i:2"><small>KR</small>${cnt(p.kr,2)}<p>убийств за раунд</p><div class="ptile__bar"><i data-w="${p.kr==null?"0%":pct(p.kr,.5,.9)}"></i></div></div>
-          <div class="ptile" style="--i:3"><small>AVG</small>${cnt(p.avg,1)}<p>убийств в среднем за карту</p><div class="ptile__bar"><i data-w="${p.avg==null?"0%":pct(p.avg,12,23)}"></i></div></div>
+        <div class="pstats founders-player-stats">
+          <div class="ptile" style="--i:0"><small>AVG KD</small>${cnt(p.kd,2)}<p>соотношение убийств к смертям</p></div>
+          <div class="ptile" style="--i:1"><small>KPR</small>${cnt(p.kpr,2)}<p>убийств за раунд</p></div>
+          <div class="ptile" style="--i:2"><small>DPR</small>${cnt(p.dpr,2)}<p>смертей за раунд</p></div>
+          <div class="ptile" style="--i:3"><small>SWING</small>${cnt(p.swing,2)}<p>влияние на раунды, %</p></div>
+          <div class="ptile" style="--i:4"><small>KAST</small>${cnt(p.kast,1)}<p>раунды с вкладом, %</p></div>
+          <div class="ptile" style="--i:5"><small>ADR</small>${cnt(p.adr,1)}<p>средний урон за раунд</p></div>
+          <div class="ptile ptile--main" style="--i:6"><small>RATING</small>${cnt(p.rating,2)}<p>общий рейтинг игрока</p></div>
+        </div>
+        <div class="box founders-detail-stats" style="margin-top:18px">
+          <div class="box__h"><h3>Подробная статистика</h3><small>Оценка от 0 до 100</small></div>
+          ${[{k:"aim",n:"AIM"},{k:"impact",n:"IMPACT"},{k:"economy",n:"ECONOMY"},{k:"utility",n:"UTILITY"},{k:"positioning",n:"POSITIONING"}].map(x=>{const v=p.detail?.[x.k];return `<div class="detail-stat"><div class="detail-stat__head"><b>${x.n}</b><strong>${v==null?"—":Math.round(v)+"/100"}</strong></div><div class="detail-stat__track"><i style="width:${v==null?0:Math.max(0,Math.min(100,v))}%"></i></div></div>`}).join("")}
+          <p class="detail-stat__note">Оценки вводятся администратором для каждой карты. Если данных нет, показатель не отображается как ноль.</p>
         </div>
       </div>
       <div>
@@ -3119,37 +3107,37 @@ function reindex(){
   evt=Object.fromEntries(DATA.events.map(e=>[e.id,e]));
   for(const k in _tc)delete _tc[k];for(const k in _pc)delete _pc[k];
 }
-let cloudSaveQueue=Promise.resolve();
-async function syncLeagueStateToCloud(snapshot){
-  const {data:sessionData,error:sessionError}=await sbClient.auth.getSession();
-  if(sessionError)throw sessionError;
-  if(!sessionData?.session)throw new Error("Войди в аккаунт администратора через Supabase");
-  const {error}=await sbClient.from("league_state").upsert({
-    id:"main",payload:snapshot,updated_at:new Date().toISOString()
-  });
-  if(error)throw error;
-  return true;
+async function syncLeagueStateToCloud(){
+  try{
+    const {data:sessionData,error:sessionError}=await sbClient.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session)throw new Error("Сессия Supabase не найдена. Войдите заново.");
+    const {error}=await sbClient.from("league_state").upsert({
+      id:"main",payload:DATA,updated_at:new Date().toISOString()
+    },{onConflict:"id"});
+    if(error)throw error;
+    return true;
+  }catch(e){
+    console.error("FOUNDERS cloud save:",e);
+    return false;
+  }
 }
 function saveData(msg){
   reindex();
-  let snapshot;
   try{
-    snapshot=JSON.stringify(DATA);
-    localStorage.setItem(SAVE_KEY,snapshot);
+    localStorage.setItem(SAVE_KEY,JSON.stringify(DATA));
+    if(curUser?.admin){
+      if(msg)toast("Сохраняем изменения в облако…");
+      syncLeagueStateToCloud().then(ok=>{
+        if(ok){if(msg)toast(msg+" · облако обновлено")}
+        else toast("Локальная копия сохранена, но облако не обновилось. Проверьте вход и права Supabase.");
+      });
+    }else if(msg)toast(msg+" · сохранено на этом устройстве");
+    return true;
   }catch(e){
     toast("Не хватает места в браузере — используйте картинки поменьше или ссылки на них");
     return false;
   }
-  if(curUser?.admin){
-    const copy=JSON.parse(snapshot);
-    if(msg)toast("Сохраняем в облако…");
-    cloudSaveQueue=cloudSaveQueue.catch(()=>{}).then(()=>syncLeagueStateToCloud(copy));
-    cloudSaveQueue.then(()=>{if(msg)toast("Сохранено в Supabase: "+msg)},e=>{
-      console.error("FOUNDERS cloud save:",e);
-      toast("Ошибка сохранения в Supabase: "+(e.message||"проверь права администратора"));
-    });
-  }else if(msg){toast(msg)}
-  return true;
 }
 /* ================= АДМИН-ПАНЕЛЬ ================= */
 const ADM_IC={
@@ -3353,8 +3341,8 @@ function editMatch(m){
   const em=m?{t1,t2,event:m.event,bo:m.bo,time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",
       veto:m.veto.map(v=>({side:v.team===m.t1?1:2,action:v.action,map:v.map})),
       rows:m.maps.map((_,i)=>i<m.mapScores.length?{state:"done",a:m.mapScores[i][0],b:m.mapScores[i][1]}:(m.live&&i===m.mapScores.length?{state:"live",a:m.s1,b:m.s2}:{state:"none",a:"",b:""})),
-      stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[]))}
-    :{t1,t2,event:DATA.events[0].id,bo:3,time:"18:00",status:"soon",veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[]};
+      stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[])),cybershokeUrl:m.cybershokeUrl||""}
+    :{t1,t2,event:DATA.events[0].id,bo:3,time:"18:00",status:"soon",veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
   const mapsOf=()=>{
     const picks=em.veto.filter(v=>v.action==="pick").map(v=>({name:v.map,side:v.side}));
     const used=new Set(em.veto.map(v=>v.map));const dec=MAP_POOL.find(x=>!used.has(x))||"—";
@@ -3389,11 +3377,15 @@ function editMatch(m){
         <i>:</i>
         <input class="inp inp--s" type="number" min="0" max="40" placeholder="${nm(2)}" data-k="rows.${i}.b" data-num value="${r.b}" ${r.state==="none"?"disabled":""}></div>`}).join("")}
     </div>
-    <div class="sec"><div class="sec__h"><h4>Статистика игроков</h4><small>Включите для карты, чтобы ввести свои цифры</small></div>
+    <div class="sec cs-import"><div class="sec__h"><h4>CYBERSHOKE · ссылка на матч</h4><small>Подготовка к будущему импорту</small></div>
+      <label class="f"><span>Ссылка на страницу матча Cybershoke</span><input class="inp" type="url" data-k="cybershokeUrl" placeholder="https://cybershoke.net/..." value="${esc(em.cybershokeUrl||"")}" autocomplete="off"></label>
+      <p class="cs-import__note">Ссылка сохраняется вместе с матчем. Автоматическая загрузка статистики пока не подключена: для неё потребуется доступный источник данных Cybershoke и безопасный серверный обработчик. Сейчас заполняйте статистику ниже вручную.</p>
+    </div>
+    <div class="sec"><div class="sec__h"><h4>Статистика игроков</h4><small>K / D / A, ADR, KAST, SWING и оценки 0–100</small></div>
       ${maps.map((mp,i)=>{const r=em.rows[i];if(r.state==="none")return "";const on=!!em.stats[i];
         return `<div class="stat-ed"><label class="chk"><input type="checkbox" data-act="stat" data-i="${i}" ${on?"checked":""}> ${mp.name}: своя статистика</label>
-        ${on?[1,2].map(k=>{const t=team[k===1?em.t1:em.t2];return `<table style="margin-top:10px"><thead><tr><th>${esc(t.name)}</th><th>Убийства</th><th>Смерти</th><th>ADR</th><th>KAST %</th></tr></thead><tbody>
-          ${t.players.map((p,pi)=>({p,pi})).filter(({p})=>!isReservePlayer(p)).map(({p,pi})=>{const s=em.stats[i]["t"+k][pi]||{k:0,d:0,adr:0,kast:0};return `<tr><td>${esc(p[0])}</td>${["k","d","adr","kast"].map(f=>`<td><input class="inp inp--s" type="number" min="0" step="${f==="adr"||f==="kast"?"0.1":"1"}" data-k="stats.${i}.t${k}.${pi}.${f}" data-num value="${s[f]}"></td>`).join("")}</tr>`}).join("")}</tbody></table>`}).join(""):""}</div>`}).join("")||`<p style="color:var(--muted);font-size:13px">Сначала отметьте хотя бы одну карту как «Идёт» или «Сыграна».</p>`}
+        ${on?[1,2].map(k=>{const t=team[k===1?em.t1:em.t2];return `<div class="cs-stats-scroll" role="region" aria-label="Статистика ${esc(t.name)}" tabindex="0"><table class="cs-stats-table" style="margin-top:10px"><thead><tr><th>${esc(t.name)}</th><th>K</th><th>D</th><th>A</th><th>ADR</th><th>KAST %</th><th>SWING</th><th>AIM</th><th>IMPACT</th><th>ECONOMY</th><th>UTILITY</th><th>POSITIONING</th></tr></thead><tbody>
+          ${t.players.map((p,pi)=>({p,pi})).filter(({p})=>!isReservePlayer(p)).map(({p,pi})=>{const s=em.stats[i]["t"+k][pi]||{k:0,d:0,a:0,adr:0,kast:0,swing:"",aim:"",impact:"",economy:"",utility:"",positioning:""};return `<tr><td>${esc(p[0])}</td>${["k","d","a","adr","kast","swing","aim","impact","economy","utility","positioning"].map(f=>`<td><input class="inp inp--s" type="number" min="${f==="swing"?-100:0}" step="${["adr","kast","swing"].includes(f)?"0.1":"1"}" max="${["aim","impact","economy","utility","positioning","kast"].includes(f)?100:999}" data-k="stats.${i}.t${k}.${pi}.${f}" data-num value="${s[f]??""}" style="width:68px"></td>`).join("")}</tr>`}).join("")}</tbody></table></div>`}).join(""):""}</div>`}).join("")||`<p style="color:var(--muted);font-size:13px">Сначала отметьте хотя бы одну карту как «Идёт» или «Сыграна».</p>`}
     </div>
     <div class="sec"><div class="sec__h"><h4>Трансляции</h4><button type="button" class="btn-sm" data-act="addstream">+ Добавить трансляцию</button></div>
       ${em.streams.length?em.streams.map((s,i)=>`<div class="srow">
@@ -3431,6 +3423,8 @@ function editMatch(m){
     tgt.live=em.status==="live";tgt.done=em.status==="done";
     tgt.s1=tgt.live&&lr?+lr.a||0:0;tgt.s2=tgt.live&&lr?+lr.b||0:0;
     const stats={};Object.keys(em.stats).forEach(i=>{if(rows[i]&&rows[i].state!=="none")stats[i]=em.stats[i]});tgt.stats=stats;
+    tgt.cybershokeUrl=/^https:\/\/(?:[a-z0-9-]+\.)*cybershoke\.(?:net|ru)\//i.test((em.cybershokeUrl||"").trim())?(em.cybershokeUrl||"").trim():"";
+    if((em.cybershokeUrl||"").trim()&&!tgt.cybershokeUrl)return "Укажите корректную HTTPS-ссылку Cybershoke или оставьте поле пустым";
     tgt.streams=em.streams.filter(s=>s.n).map(s=>({n:s.n,p:s.p||"tw",c:s.c||"SE",url:safeUrl(s.url),v:+s.v||0,main:!!s.main}));
     if(isNew)DATA.matches.push(tgt);
     saveData(isNew?"Матч добавлен":"Матч сохранён");drawAdmin();return null;
@@ -3448,7 +3442,7 @@ function editMatch(m){
       }
       if(t.dataset.act==="stat"){
         const i=+t.dataset.i;
-        if(t.checked){const r=em.rows[i],R=(+r.a||0)+(+r.b||0)||20;em.stats[i]={t1:[0,1,2,3,4].map(()=>({k:Math.round(R*.7),d:Math.round(R*.68),adr:75,kast:70})),t2:[0,1,2,3,4].map(()=>({k:Math.round(R*.68),d:Math.round(R*.7),adr:74,kast:70}))}}
+        if(t.checked){const r=em.rows[i],R=(+r.a||0)+(+r.b||0)||20;em.stats[i]={t1:Array.from({length:team[em.t1].players.length},()=>({k:0,d:0,a:0,adr:0,kast:0,swing:0,aim:0,impact:0,economy:0,utility:0,positioning:0})),t2:Array.from({length:team[em.t2].players.length},()=>({k:0,d:0,a:0,adr:0,kast:0,swing:0,aim:0,impact:0,economy:0,utility:0,positioning:0}))}}
         else delete em.stats[i];
         rerender();
       }

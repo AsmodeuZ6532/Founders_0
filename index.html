@@ -2114,6 +2114,58 @@ function stopBg(){cancelAnimationFrame(rafId);rafId=null}
 addEventListener("resize",()=>{if(!$("#auth").hidden)startBg()});
 
 /* ================= АВТОРИЗАЦИЯ (email + пароль) ================= */
+/* Supabase recovery: password reset links, including hash and PKCE code flows. */
+const recoveryLinkDetected=(new URLSearchParams(location.hash.replace(/^#/,""))).get("type")==="recovery" || new URLSearchParams(location.search).get("type")==="recovery";
+let recoveryOpened=false;
+function showRecoveryForm(){
+  if(recoveryOpened)return;
+  recoveryOpened=true;
+  const panel=document.createElement("section");
+  panel.id="foundersRecovery";
+  panel.style.cssText="position:fixed;z-index:10001;inset:0;background:rgba(8,9,13,.97);display:grid;place-items:center;padding:20px;color:#eef0f6;font-family:Inter,system-ui,sans-serif";
+  panel.innerHTML=`<form id="foundersRecoveryForm" style="background:#181b25;border:1px solid rgba(198,255,61,.35);border-radius:20px;padding:30px;max-width:440px;width:100%;display:grid;gap:14px">
+    <h2 style="font-size:23px;margin:0;color:#c6ff3d">Новый пароль FOUNDERS</h2>
+    <p style="margin:0;color:#aeb2c4">Введите новый пароль для аккаунта Supabase. Минимум 8 символов.</p>
+    <input id="foundersNewPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Новый пароль" style="background:#101219;border:1px solid #555;border-radius:10px;padding:13px;color:white;width:100%">
+    <input id="foundersRepeatPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Повторите пароль" style="background:#101219;border:1px solid #555;border-radius:10px;padding:13px;color:white;width:100%">
+    <p id="foundersRecoveryStatus" role="status" style="font-size:13px;color:#ff8ba0;margin:0"></p>
+    <button type="submit" style="background:#c6ff3d;color:#101219;border:0;border-radius:10px;padding:14px;font-weight:bold">Сохранить новый пароль</button>
+    <a href="https://asmodeuz6532.github.io/Founders_0/" style="color:#b9c1d4;text-align:center">Назад к входу</a>
+  </form>`;
+  document.body.appendChild(panel);
+  panel.querySelector("form").addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    const password=panel.querySelector("#foundersNewPassword").value;
+    const again=panel.querySelector("#foundersRepeatPassword").value;
+    const status=panel.querySelector("#foundersRecoveryStatus");
+    const button=panel.querySelector('button[type="submit"]');
+    if(password.length<8){status.textContent="Минимум 8 символов";return}
+    if(password!==again){status.textContent="Пароли не совпадают";return}
+    button.disabled=true;status.textContent="Сохраняем…";
+    try{
+      const {data:{session},error:sessionError}=await sbClient.auth.getSession();
+      if(sessionError)throw sessionError;
+      if(!session)throw new Error("Ссылка восстановления истекла. Запросите новую ссылку позднее.");
+      const {error}=await sbClient.auth.updateUser({password});
+      if(error)throw error;
+      status.style.color="#c6ff3d";
+      status.textContent="Пароль изменён! Сейчас можно войти с новым паролем.";
+      await sbClient.auth.signOut();
+      store.del("fz-session");
+      panel.querySelectorAll("input").forEach(x=>{x.value="";x.disabled=true});
+      button.textContent="Пароль сохранён";
+      history.replaceState({},"",location.pathname);
+    }catch(err){status.textContent=err.message||"Не удалось сменить пароль";button.disabled=false}
+  });
+}
+sbClient.auth.onAuthStateChange((event,session)=>{
+  if(event==="PASSWORD_RECOVERY")showRecoveryForm();
+});
+if(recoveryLinkDetected){
+  // Supabase consumes recovery URL tokens asynchronously. Keep the reset form visible.
+  showRecoveryForm();
+}
+
 const card=$("#authCard"), form=$("#authForm");
 let mode="login";
 // Демо-хэш. На настоящем сайте пароли проверяет сервер.
@@ -3030,33 +3082,37 @@ function reindex(){
   evt=Object.fromEntries(DATA.events.map(e=>[e.id,e]));
   for(const k in _tc)delete _tc[k];for(const k in _pc)delete _pc[k];
 }
-async function syncLeagueStateToCloud(){
-  try{
-    const {data:sessionData,error:sessionError}=await sbClient.auth.getSession();
-    if(sessionError)throw sessionError;
-    if(!sessionData?.session)return false;
-    const {error}=await sbClient.from("league_state").upsert({
-      id:"main",payload:DATA,updated_at:new Date().toISOString()
-    });
-    if(error)throw error;
-    return true;
-  }catch(e){
-    console.error("FOUNDERS cloud save:",e);
-    toast("Не удалось сохранить в Supabase: "+(e.message||"проверь SQL и права администратора"));
-    return false;
-  }
+let cloudSaveQueue=Promise.resolve();
+async function syncLeagueStateToCloud(snapshot){
+  const {data:sessionData,error:sessionError}=await sbClient.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!sessionData?.session)throw new Error("Войди в аккаунт администратора через Supabase");
+  const {error}=await sbClient.from("league_state").upsert({
+    id:"main",payload:snapshot,updated_at:new Date().toISOString()
+  });
+  if(error)throw error;
+  return true;
 }
 function saveData(msg){
   reindex();
+  let snapshot;
   try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(DATA));
-    if(msg)toast(msg);
-    if(curUser?.admin)syncLeagueStateToCloud();
-    return true;
+    snapshot=JSON.stringify(DATA);
+    localStorage.setItem(SAVE_KEY,snapshot);
   }catch(e){
     toast("Не хватает места в браузере — используйте картинки поменьше или ссылки на них");
     return false;
   }
+  if(curUser?.admin){
+    const copy=JSON.parse(snapshot);
+    if(msg)toast("Сохраняем в облако…");
+    cloudSaveQueue=cloudSaveQueue.catch(()=>{}).then(()=>syncLeagueStateToCloud(copy));
+    cloudSaveQueue.then(()=>{if(msg)toast("Сохранено в Supabase: "+msg)},e=>{
+      console.error("FOUNDERS cloud save:",e);
+      toast("Ошибка сохранения в Supabase: "+(e.message||"проверь права администратора"));
+    });
+  }else if(msg){toast(msg)}
+  return true;
 }
 /* ================= АДМИН-ПАНЕЛЬ ================= */
 const ADM_IC={

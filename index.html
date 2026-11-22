@@ -2467,21 +2467,25 @@ function renderTicker(){
   const items=DATA.matches.filter(m=>!m.done).map(m=>{
     const a=team[m.t1],b=team[m.t2];
     return m.live?`<span class="tk" data-m="${m.id}"><span class="live"><i class="dot"></i>LIVE</span><b>${esc(a.name)}</b><span class="sc">${m.s1}:${m.s2}</span><b>${esc(b.name)}</b></span>`
-                 :`<span class="tk" data-m="${m.id}">${m.time} · <b>${esc(a.name)}</b> vs <b>${esc(b.name)}</b></span>`;
+                 :`<span class="tk" data-m="${m.id}">${m.date?matchDateLabel(m)+" · ":""}${m.time} · <b>${esc(a.name)}</b> vs <b>${esc(b.name)}</b></span>`;
   }).join("");
   $("#ticker").innerHTML=items+items;
 }
 function startsIn(m){
-  const [h,mi]=m.time.split(":").map(Number),now=new Date(),t=new Date(now);
-  t.setHours(h,mi,0,0);if(t-now<-3*3600e3)t.setDate(t.getDate()+1);
-  const diff=t-now;if(diff<=0)return {txt:"вот-вот начнётся",date:t};
-  const H=Math.floor(diff/3600e3),M=Math.floor(diff%3600e3/60000);
-  return {txt:`через ${H?H+" ч ":""}${M} мин`,date:t};
+  const [h,mi]=(m.time||"18:00").split(":").map(Number),now=new Date();
+  const t=m.date?new Date(`${m.date}T${m.time||"18:00"}:00`):new Date(now);
+  if(!m.date){t.setHours(h,mi,0,0);if(t-now<-3*3600e3)t.setDate(t.getDate()+1)}
+  if(Number.isNaN(t.getTime()))return {txt:"время уточняется",date:now};
+  const diff=t-now;
+  if(diff<=0)return {txt:m.date?"время начала наступило":"вот-вот начнётся",date:t};
+  const D=Math.floor(diff/864e5),H=Math.floor(diff%864e5/36e5),M=Math.floor(diff%36e5/6e4);
+  return {txt:`через ${D?D+" д ":""}${H?H+" ч ":""}${M} мин`,date:t};
 }
 const fmtDate=d=>d.toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"});
+const matchDateLabel=m=>m.date?new Date(m.date+"T12:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"}):"Дата не указана";
 function mcard(m,i,animate=true){
   const a=team[m.t1],b=team[m.t2],ev=evt[m.event];
-  const status=m.live?`<span class="live"><i class="dot"></i>LIVE</span>`:m.done?`<span class="status-done">Завершён</span>`:`<span class="mcard__time">${m.time}</span>`;
+  const status=m.live?`<span class="live"><i class="dot"></i>LIVE</span>`:m.done?`<span class="status-done">Завершён</span>`:`<span class="mcard__time">${m.date?matchDateLabel(m)+" · ":""}${m.time}</span>`;
   const row=(t,me,op,mp)=>{
     if(!m.live&&!m.done) return `<div class="mcard__row">${badge(t)}<span class="mcard__name">${esc(t.name)}</span></div>`;
     const cls=me>op?"win":me<op?"lose":"";
@@ -2665,7 +2669,7 @@ function mrow(m,i,anim){
     const w1=m.maps1>m.maps2,w2=m.maps2>m.maps1;
     mid=`<div class="mrow__sc"><span class="${m.done?(w1?"w":"l"):""}">${m.maps1}</span> : <span class="${m.done?(w2?"w":"l"):""}">${m.maps2}</span>${m.live?`<span class="mrow__live">${m.s1}:${m.s2} · ${m.maps[m.mapScores.length]?.name||""}</span>`:""}</div>`;
   } else mid=`<div class="mrow__sc mrow__vs">VS</div>`;
-  const time=m.live?`<span class="live"><i class="dot"></i>LIVE</span>`:m.done?`<span class="status-done">${m.time||"Сегодня"}</span>`:`<span class="mrow__time">${m.time}</span>`;
+  const time=m.live?`<span class="live"><i class="dot"></i>LIVE</span>`:m.done?`<span class="status-done">${m.time||"Сегодня"}</span>`:`<span class="mrow__time">${m.date?matchDateLabel(m)+" · ":""}${m.time}</span>`;
   return `<a href="#/match/${m.id}" class="mrow${m.live?" is-live":""}" style="--i:${i};${anim?"":"animation:none"}">
     <div class="mrow__time">${time}</div>
     <div class="mrow__t mrow__t--r"><span>${esc(a.name)}</span>${badge(a)}</div>
@@ -2858,7 +2862,7 @@ function viewEvents(){
           const w1=m.maps1>m.maps2,w2=m.maps2>m.maps1;
           const mid=m.live?`<span class="evm__mid is-live"><span class="live"><i class="dot"></i></span>${m.maps1}:${m.maps2}</span>`
             :m.done?`<span class="evm__mid"><span class="${w1?"w":"l"}">${m.maps1}</span>:<span class="${w2?"w":"l"}">${m.maps2}</span></span>`
-            :`<span class="evm__mid is-soon">${m.time}</span>`;
+            :`<span class="evm__mid is-soon">${m.date?matchDateLabel(m)+" · ":""}${m.time}</span>`;
           return `<a href="#/match/${m.id}" class="evm"><span class="evm__t evm__t--r"><span>${esc(a.name)}</span>${badge(a)}</span>${mid}<span class="evm__t">${badge(b)}<span>${esc(b.name)}</span></span></a>`}).join("")
           :`<p class="note" style="padding:20px">Расписание появится ближе к старту</p>`}${ms.length>5?`<a class="fd-events-more" href="#/event/${e.id}/results">ВСЕ ${ms.length} РЕЗУЛЬТАТОВ · ОТКРЫТЬ ТУРНИР →</a>`:""}</div></div>`;
     }).join("");
@@ -3326,7 +3330,7 @@ function admMatches(el){
     `<div class="adm__warn">Можно сохранить будущий матч без вето. Когда карты будут выбраны, вернитесь к матчу и добавьте вето. Также доступны счёт карт, LIVE, статистика игроков и трансляции. Если статистику не заполнять, она считается автоматически.</div>
     <div class="alist">${DATA.matches.map((m,i)=>{const a=team[m.t1],b=team[m.t2];return `<div class="arow" style="--i:${i}">
       ${badge(a)}${badge(b)}
-      <div class="arow__main"><b>${esc(a.name)} vs ${esc(b.name)} ${st(m)}</b><small>${esc(evt[m.event]?.name||"")} · BO${m.bo} · ${m.time||""} · карты ${m.maps1}:${m.maps2}${m.live?` · сейчас ${m.s1}:${m.s2}`:""}</small></div>
+      <div class="arow__main"><b>${esc(a.name)} vs ${esc(b.name)} ${st(m)}</b><small>${esc(evt[m.event]?.name||"")} · BO${m.bo} · ${m.date?matchDateLabel(m)+" · ":""}${m.time||""} · карты ${m.maps1}:${m.maps2}${m.live?` · сейчас ${m.s1}:${m.s2}`:""}</small></div>
       <div class="arow__acts"><a class="btn-sm" href="#/match/${m.id}">Открыть</a><button class="btn-sm" data-e="${m.id}">Изменить</button><button class="btn-sm btn-sm--danger" data-d="${m.id}">Удалить</button></div></div>`}).join("")}</div>`;
   $("#addMatch").onclick=()=>{if(DATA.teams.length<2)return toast("Сначала добавьте минимум две команды");editMatch(null)};
   el.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editMatch(matchById(b.dataset.e)));
@@ -3338,11 +3342,11 @@ function vetoPlan(bo,a,b){
 function editMatch(m){
   const isNew=!m;
   const t1=m?m.t1:DATA.teams[0].id,t2=m?m.t2:DATA.teams[1].id;
-  const em=m?{t1,t2,event:m.event,bo:m.bo,time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",noVeto:!!m.noVeto||!m.veto?.length,
+  const em=m?{t1,t2,event:m.event,bo:m.bo,date:m.date||"",time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",noVeto:!!m.noVeto||!m.veto?.length,
       veto:(m.veto||[]).map(v=>({side:v.team===m.t1?1:2,action:v.action,map:v.map})),
       rows:m.maps.map((_,i)=>i<m.mapScores.length?{state:"done",a:m.mapScores[i][0],b:m.mapScores[i][1]}:(m.live&&i===m.mapScores.length?{state:"live",a:m.s1,b:m.s2}:{state:"none",a:"",b:""})),
       stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[])),cybershokeUrl:m.cybershokeUrl||""}
-    :{t1,t2,event:DATA.events[0].id,bo:3,time:"18:00",status:"soon",noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
+    :{t1,t2,event:DATA.events[0].id,bo:3,date:"",time:"18:00",status:"soon",noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
   const mapsOf=()=>{
     if(em.noVeto)return Array.from({length:em.bo===3?3:1},()=>({name:"TBD",side:0}));
     const picks=em.veto.filter(v=>v.action==="pick").map(v=>({name:v.map,side:v.side}));
@@ -3361,6 +3365,7 @@ function editMatch(m){
       <label class="f"><span>Команда 2</span><select class="inp" data-k="t2" data-re>${teamOpts(em.t2)}</select></label>
       <label class="f"><span>Турнир</span><select class="inp" data-k="event">${eventOpts(em.event)}</select></label>
       <label class="f"><span>Формат</span><select class="inp" data-k="bo" data-num data-re>${opt([[1,"BO1 — одна карта"],[3,"BO3 — до двух побед"]],em.bo)}</select></label>
+      <label class="f"><span>Дата матча</span><input class="inp" type="date" data-k="date" value="${esc(em.date)}"></label>
       <label class="f"><span>Время начала</span><input class="inp" type="time" data-k="time" value="${esc(em.time)}"></label>
       <label class="f"><span>Статус</span><select class="inp" data-k="status" data-re>${opt([["soon","Скоро"],["live","Идёт (LIVE)"],["done","Завершён"]],em.status)}</select></label>
     </div>
@@ -3405,6 +3410,7 @@ function editMatch(m){
     if(em.t1===em.t2)return "Выберите две разные команды";
     if(!em.noVeto&&new Set(em.veto.map(v=>v.map)).size!==em.veto.length)return "В вето повторяются карты";
     if(em.noVeto&&em.status!=="soon")return "Без вето можно сохранить только предстоящий матч";
+    if(em.date&&!/^\d{4}-\d{2}-\d{2}$/.test(em.date))return "Укажите корректную дату матча";
     if(!/^\d{2}:\d{2}$/.test(em.time))return "Укажите время в формате ЧЧ:ММ";
     const maps=mapsOf();
     const rows=em.rows;
@@ -3415,7 +3421,7 @@ function editMatch(m){
     if(rows.filter(r=>r.state==="live").length>1)return "Сейчас может идти только одна карта";
     if(em.status!=="live"&&rows.some(r=>r.state==="live"))return "Карта «идёт сейчас» есть только у LIVE-матча";
     const tgt=m||{id:Math.max(0,...DATA.matches.map(x=>x.id))+1};
-    tgt.t1=em.t1;tgt.t2=em.t2;tgt.event=em.event;tgt.bo=em.bo;tgt.time=em.time;
+    tgt.t1=em.t1;tgt.t2=em.t2;tgt.event=em.event;tgt.bo=em.bo;tgt.date=em.date||"";tgt.time=em.time;
     tgt.noVeto=!!em.noVeto;
     tgt.veto=em.noVeto?[]:em.veto.map(v=>({team:v.side===1?em.t1:em.t2,action:v.action,map:v.map}));
     tgt.decider=em.noVeto?"TBD":maps[maps.length-1].name;
@@ -4681,7 +4687,7 @@ function pickCard(m,i=0){
   const A=team[m.t1],B=team[m.t2];if(!A||!B)return "";
   const ev=evt[m.event],d=ud(),p=d&&d.picks[m.id],c1=pkCommunity(m),w=pkWinner(m),lock=m.live||m.done;
   const btn=(t,pc)=>`<button type="button" class="pk__t${p&&p.t===t.id?" is-pick":""}${w===t.id?" is-win":""}" data-pick="${m.id}" data-team="${t.id}" ${lock?"disabled":""} style="--c:${t.color}">${badge(t,"badge--lg")}<b>${esc(t.name)}</b><span class="pk__pc">${pc}%</span><i class="pk__bar" style="width:${pc}%"></i></button>`;
-  const st=m.live?`<span class="live"><i class="dot"></i>LIVE · прогнозы закрыты</span>`:m.done?`<span>Завершён · ${m.maps1}:${m.maps2}</span>`:`<span>${esc(m.time||"")} · до начала</span>`;
+  const st=m.live?`<span class="live"><i class="dot"></i>LIVE · прогнозы закрыты</span>`:m.done?`<span>Завершён · ${m.maps1}:${m.maps2}</span>`:`<span>${m.date?matchDateLabel(m)+" · ":""}${esc(m.time||"")} · до начала</span>`;
   let foot;
   if(p&&w){const ok=w===p.t,pc=p.t===m.t1?c1:100-c1;foot=`Ваш прогноз: <b>${esc(team[p.t].name)}</b> · <span class="pk__res ${ok?"hit":"miss"}">${ok?`+${PK_WIN+(pc<40?PK_UNDER:0)} очков`:"мимо"}</span>`}
   else if(p)foot=`Ваш прогноз: <b>${esc(team[p.t].name)}</b>${lock?"":" · можно изменить до начала"}`;

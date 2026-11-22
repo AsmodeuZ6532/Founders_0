@@ -2017,8 +2017,8 @@ const FLAGS = {
 };
 DATA.settings=Object.assign({sim:false,tourV:1},DATA.settings);
 const DEFAULT_JSON=JSON.stringify(DATA);
-const MAP_POOL = ["Mirage","Inferno","Nuke","Ancient","Anubis","Dust2","Train"];
-const MAP_COLORS = { Mirage:["#c98a3c","#6b3f1d"], Inferno:["#b5482f","#4a1f16"], Nuke:["#3f7f95","#1c3440"], Ancient:["#3f8f5a","#1a3a26"], Anubis:["#c9a94a","#5a4318"], Dust2:["#c7a46b","#5e4423"], Train:["#6f7b8a","#2b3139"] };
+const MAP_POOL = ["Mirage","Inferno","Nuke","Ancient","Anubis","Dust2","Cache"];
+const MAP_COLORS = { Mirage:["#c98a3c","#6b3f1d"], Inferno:["#b5482f","#4a1f16"], Nuke:["#3f7f95","#1c3440"], Ancient:["#3f8f5a","#1a3a26"], Anubis:["#c9a94a","#5a4318"], Dust2:["#c7a46b","#5e4423"], Cache:["#6f7b8a","#2b3139"] };
 const STREAMERS = [];
 
 (function(){
@@ -2380,7 +2380,7 @@ function viewGraphics(){
  <div id="gsFields"></div><div class="gs-actions"><button class="btn btn--lime" id="gsSave">Скачать PNG</button><button class="btn" id="gsReset">Сбросить поля</button></div><p class="note">Файл PNG сохраняется в разрешении 1080 × 1350.</p></div>
  <div class="gs-preview-wrap"><div class="gs-preview-title">ПРЕДПРОСМОТР</div><canvas id="gsCanvas" width="1080" height="1350" aria-label="Предпросмотр макета"></canvas></div></section>`;
  const $g=id=>document.getElementById(id),type=$g("gsType"),fields=$g("gsFields"),canvas=$g("gsCanvas"),ctx=canvas.getContext("2d");
- const mapsList=["Mirage","Inferno","Nuke","Ancient","Dust2","Train","Overpass"];
+ const mapsList=["Mirage","Inferno","Nuke","Ancient","Dust2","Cache","Overpass"];
  const defaults={mvp_match:{nick:"ИМЯ ИГРОКА",team:"НАЗВАНИЕ КОМАНДЫ",kda:"24 / 13 / 7",rating:"1.42"},mvp_map:{nick:"ИМЯ ИГРОКА",team:"НАЗВАНИЕ КОМАНДЫ",kda:"24 / 13 / 7",rating:"1.42",map:"Mirage"},result:{a:"КОМАНДА A",b:"КОМАНДА B",score:"2 : 1",map:"MIRAGE",format:"BO3 · PLAYOFF"},s1:{a:"КОМАНДА A",b:"КОМАНДА B",time:"19:00",format:"BO1"},s2:{a:"КОМАНДА A",b:"КОМАНДА B",time:"18:00",format:"BO1",a2:"КОМАНДА C",b2:"КОМАНДА D",time2:"20:00",format2:"BO1"},s3:{a:"КОМАНДА A",b:"КОМАНДА B",time:"16:00",format:"BO1",a2:"КОМАНДА C",b2:"КОМАНДА D",time2:"18:00",format2:"BO1",a3:"КОМАНДА E",b3:"КОМАНДА F",time3:"20:00",format3:"BO1"},s4:{a:"КОМАНДА A",b:"КОМАНДА B",time:"14:00",format:"BO1",a2:"КОМАНДА C",b2:"КОМАНДА D",time2:"16:00",format2:"BO1",a3:"КОМАНДА E",b3:"КОМАНДА F",time3:"18:00",format3:"BO1",a4:"КОМАНДА G",b4:"КОМАНДА H",time4:"20:00",format4:"BO1"}};
  let values={};
  const field=(key,label)=>`<label>${label}<input data-gs="${key}" value="${String(values[key]||"").replace(/"/g,"&quot;")}"></label>`;
@@ -2689,7 +2689,7 @@ function viewMatch(id){
         <div class="box"><div class="box__h"><h3>Карты</h3></div>
           <div class="fmt"><b>Best of ${m.bo}</b> (${ev.lan?"LAN":"онлайн"})<br>${esc(ev.stage||"Турнир")}</div>
         </div>
-        <div class="box"><ol class="veto">${m.veto.map(v=>`<li><span><b>${esc(team[v.team].name)}</b> ${v.action==="ban"?`<span class="act-ban">убрали</span>`:`<span class="act-pick">выбрали</span>`} ${v.map}</span></li>`).join("")}<li><span><b>${m.decider}</b> <span class="act-left">осталась решающей</span></span></li></ol></div>
+        <div class="box">${m.noVeto?`<p style="color:var(--muted);font-size:13px;padding:8px">Вето ещё не проведено. Карты определятся перед матчем.</p>`:`<ol class="veto">${m.veto.map(v=>`<li><span><b>${esc(team[v.team].name)}</b> ${v.action==="ban"?`<span class="act-ban">убрали</span>`:`<span class="act-pick">выбрали</span>`} ${v.map}</span></li>`).join("")}<li><span><b>${m.decider}</b> <span class="act-left">осталась решающей</span></span></li></ol>`}</div>
         <div class="box" id="mMaps"></div>
       </div>
       <div class="box" id="mStreams"></div>
@@ -3323,7 +3323,7 @@ function editNews(i){
 function admMatches(el){
   const st=m=>m.live?`<span class="pill-s live">LIVE</span>`:m.done?`<span class="pill-s done">Завершён</span>`:`<span class="pill-s">Скоро</span>`;
   el.innerHTML=admHead("Матчи",`<button class="btn-sm btn-sm--lime" id="addMatch">+ Добавить матч</button>`)+
-    `<div class="adm__warn">В матче можно задать вето (баны и пики), счёт каждой карты, текущий счёт LIVE, статистику игроков и список трансляций. Если статистику не заполнять, она считается автоматически.</div>
+    `<div class="adm__warn">Можно сохранить будущий матч без вето. Когда карты будут выбраны, вернитесь к матчу и добавьте вето. Также доступны счёт карт, LIVE, статистика игроков и трансляции. Если статистику не заполнять, она считается автоматически.</div>
     <div class="alist">${DATA.matches.map((m,i)=>{const a=team[m.t1],b=team[m.t2];return `<div class="arow" style="--i:${i}">
       ${badge(a)}${badge(b)}
       <div class="arow__main"><b>${esc(a.name)} vs ${esc(b.name)} ${st(m)}</b><small>${esc(evt[m.event]?.name||"")} · BO${m.bo} · ${m.time||""} · карты ${m.maps1}:${m.maps2}${m.live?` · сейчас ${m.s1}:${m.s2}`:""}</small></div>
@@ -3338,12 +3338,13 @@ function vetoPlan(bo,a,b){
 function editMatch(m){
   const isNew=!m;
   const t1=m?m.t1:DATA.teams[0].id,t2=m?m.t2:DATA.teams[1].id;
-  const em=m?{t1,t2,event:m.event,bo:m.bo,time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",
-      veto:m.veto.map(v=>({side:v.team===m.t1?1:2,action:v.action,map:v.map})),
+  const em=m?{t1,t2,event:m.event,bo:m.bo,time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",noVeto:!!m.noVeto||!m.veto?.length,
+      veto:(m.veto||[]).map(v=>({side:v.team===m.t1?1:2,action:v.action,map:v.map})),
       rows:m.maps.map((_,i)=>i<m.mapScores.length?{state:"done",a:m.mapScores[i][0],b:m.mapScores[i][1]}:(m.live&&i===m.mapScores.length?{state:"live",a:m.s1,b:m.s2}:{state:"none",a:"",b:""})),
       stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[])),cybershokeUrl:m.cybershokeUrl||""}
-    :{t1,t2,event:DATA.events[0].id,bo:3,time:"18:00",status:"soon",veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
+    :{t1,t2,event:DATA.events[0].id,bo:3,time:"18:00",status:"soon",noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
   const mapsOf=()=>{
+    if(em.noVeto)return Array.from({length:em.bo===3?3:1},()=>({name:"TBD",side:0}));
     const picks=em.veto.filter(v=>v.action==="pick").map(v=>({name:v.map,side:v.side}));
     const used=new Set(em.veto.map(v=>v.map));const dec=MAP_POOL.find(x=>!used.has(x))||"—";
     return em.bo===3?picks.concat([{name:dec,side:0}]):[{name:dec,side:0}];
@@ -3363,15 +3364,15 @@ function editMatch(m){
       <label class="f"><span>Время начала</span><input class="inp" type="time" data-k="time" value="${esc(em.time)}"></label>
       <label class="f"><span>Статус</span><select class="inp" data-k="status" data-re>${opt([["soon","Скоро"],["live","Идёт (LIVE)"],["done","Завершён"]],em.status)}</select></label>
     </div>
-    <div class="sec"><div class="sec__h"><h4>Вето — баны и пики</h4><button type="button" class="btn-sm" data-act="autoveto">Случайное вето</button></div>
-      ${em.veto.map((v,i)=>`<div class="vrow"><b>${i+1}</b>
+    <div class="sec"><div class="sec__h"><h4>Вето — баны и пики</h4><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn-sm ${em.noVeto?"btn-sm--lime":""}" data-act="noveto">${em.noVeto?"✓ Без вето":"Без вето"}</button><button type="button" class="btn-sm" data-act="autoveto">Случайное вето</button></div></div>
+      ${em.noVeto?`<p class="cs-import__note">Матч можно сохранить без вето. Карты будут определены позже; для выбора карт отключите «Без вето».</p>`:em.veto.map((v,i)=>`<div class="vrow"><b>${i+1}</b>
         <select class="inp inp--s" data-k="veto.${i}.side" data-num data-re>${opt([[1,team[em.t1].name],[2,team[em.t2].name]],v.side)}</select>
         <select class="inp inp--s" data-k="veto.${i}.action" data-re>${opt(em.bo===3?[["ban","убрали"],["pick","выбрали"]]:[["ban","убрали"]],v.action)}</select>
         <select class="inp inp--s" data-k="veto.${i}.map" data-re>${opt(MAP_POOL.map(x=>[x,x]),v.map)}</select></div>`).join("")}
-      <p style="font-size:12px;color:${dup?"var(--lose)":"var(--muted)"};margin-top:6px">${dup?"Карты в вето повторяются — у каждой строки должна быть своя карта":`Решающая карта: <b style="color:var(--text)">${maps[maps.length-1].name}</b>`}</p>
+      ${em.noVeto?"":`<p style="font-size:12px;color:${dup?"var(--lose)":"var(--muted)"};margin-top:6px">${dup?"Карты в вето повторяются — у каждой строки должна быть своя карта":`Решающая карта: <b style="color:var(--text)">${maps[maps.length-1].name}</b>`}</p>`}
     </div>
     <div class="sec"><div class="sec__h"><h4>Результаты карт</h4><small>Общий счёт по картам посчитается сам</small></div>
-      ${maps.map((mp,i)=>{const r=em.rows[i];return `<div class="mrow-ed"><b>${mp.name}${mp.side?` <span class="pick" style="margin-left:4px">${nm(mp.side)}</span>`:""}</b>
+      ${em.noVeto?`<p class="cs-import__note">Карты пока неизвестны. После проведения вето здесь можно будет внести результаты.</p>`:maps.map((mp,i)=>{const r=em.rows[i];return `<div class="mrow-ed"><b>${mp.name}${mp.side?` <span class="pick" style="margin-left:4px">${nm(mp.side)}</span>`:""}</b>
         <select class="inp inp--s" data-k="rows.${i}.state" data-re>${opt([["none","Не сыграна"],["live","Идёт сейчас"],["done","Сыграна"]],r.state)}</select>
         <input class="inp inp--s" type="number" min="0" max="40" placeholder="${nm(1)}" data-k="rows.${i}.a" data-num value="${r.a}" ${r.state==="none"?"disabled":""}>
         <i>:</i>
@@ -3402,7 +3403,8 @@ function editMatch(m){
   const setPath=(path,v)=>{const ks=path.split(".");let o=em;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks[ks.length-1]]=v};
   openModal(isNew?"Новый матч":"Редактировать матч",body,()=>{
     if(em.t1===em.t2)return "Выберите две разные команды";
-    if(new Set(em.veto.map(v=>v.map)).size!==em.veto.length)return "В вето повторяются карты";
+    if(!em.noVeto&&new Set(em.veto.map(v=>v.map)).size!==em.veto.length)return "В вето повторяются карты";
+    if(em.noVeto&&em.status!=="soon")return "Без вето можно сохранить только предстоящий матч";
     if(!/^\d{2}:\d{2}$/.test(em.time))return "Укажите время в формате ЧЧ:ММ";
     const maps=mapsOf();
     const rows=em.rows;
@@ -3414,8 +3416,9 @@ function editMatch(m){
     if(em.status!=="live"&&rows.some(r=>r.state==="live"))return "Карта «идёт сейчас» есть только у LIVE-матча";
     const tgt=m||{id:Math.max(0,...DATA.matches.map(x=>x.id))+1};
     tgt.t1=em.t1;tgt.t2=em.t2;tgt.event=em.event;tgt.bo=em.bo;tgt.time=em.time;
-    tgt.veto=em.veto.map(v=>({team:v.side===1?em.t1:em.t2,action:v.action,map:v.map}));
-    tgt.decider=maps[maps.length-1].name;
+    tgt.noVeto=!!em.noVeto;
+    tgt.veto=em.noVeto?[]:em.veto.map(v=>({team:v.side===1?em.t1:em.t2,action:v.action,map:v.map}));
+    tgt.decider=em.noVeto?"TBD":maps[maps.length-1].name;
     tgt.maps=maps.map(x=>({name:x.name,pick:x.side?(x.side===1?em.t1:em.t2):null}));
     tgt.mapScores=doneRows.map(r=>[+r.a,+r.b]);
     tgt.maps1=tgt.mapScores.filter(s=>s[0]>s[1]).length;tgt.maps2=tgt.mapScores.length-tgt.maps1;
@@ -3449,7 +3452,8 @@ function editMatch(m){
     });
     f.addEventListener("click",e=>{
       const b=e.target.closest("[data-act]");if(!b||b.type==="checkbox")return;
-      if(b.dataset.act==="autoveto"){const pool=MAP_POOL.slice().sort(()=>Math.random()-.5);em.veto=em.veto.map((v,i)=>({...v,map:pool[i]}));em.stats={};rerender()}
+      if(b.dataset.act==="noveto"){em.noVeto=!em.noVeto;em.rows=[];em.stats={};rerender()}
+      if(b.dataset.act==="autoveto"){em.noVeto=false;const pool=MAP_POOL.slice().sort(()=>Math.random()-.5);em.veto=em.veto.map((v,i)=>({...v,map:pool[i]}));em.stats={};rerender()}
       if(b.dataset.act==="addstream"){em.streams.push({n:"",p:"tw",c:"SE",url:"",v:0,main:false});rerender()}
       if(b.dataset.act==="delstream"){em.streams.splice(+b.dataset.i,1);rerender()}
     });

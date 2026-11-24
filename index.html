@@ -2631,7 +2631,7 @@ function renderRank(n){
   if(!DATA.teams.length){$("#rankList").innerHTML=`<li style="display:block;color:var(--muted);font-size:14px;padding:14px 0">Рейтинг появится после первого турнира</li>`;return}
   const max=DATA.teams[0].pts||1;
   $("#rankList").innerHTML=DATA.teams.slice(0,n).map(t=>{
-    const c=t.change>0?["up","▲"+t.change]:t.change<0?["down","▼"+(-t.change)]:["same","—"];
+    const c=t.delta>0?["up","+"+t.delta]:t.delta<0?["down",String(t.delta)]:["same","—"];
     return `<li><a class="cover" href="#/team/${t.id}" aria-label="${esc(t.name)}"></a><span class="rank__pos">${String(t.pos).padStart(2,"0")}</span>${badge(t)}<div class="rank__info"><div class="rank__name">${esc(t.name)}</div><div class="rank__bar"><i data-w="${(t.pts/max*100).toFixed(0)}%"></i></div></div><span class="rank__chg ${c[0]}">${c[1]}</span></li>`;
   }).join("");
 }
@@ -2886,21 +2886,18 @@ function foundersVRS(){
   for(const m of matches){const w=m.maps1>m.maps2?m.t1:m.t2,l=w===m.t1?m.t2:m.t1,d=pts[l]-pts[w];const rank=1+Object.values(pts).filter(p=>p>pts[l]).length;const [gain,loss]=vrsAward(d,rank,m.technical);const old=pts[l];pts[w]+=gain;pts[l]=Math.max(0,old-loss);changes[w]=gain;changes[l]=pts[l]-old;}
   return DATA.teams.map(t=>({...t,pts:pts[t.id],delta:changes[t.id]||0})).sort((a,b)=>b.pts-a.pts||a.name.localeCompare(b.name)).map((t,i)=>({...t,pos:i+1}));
 }
-let foundersRankMode="vrs";
 function viewRank(){
   if(!DATA.teams.length){$("#view").innerHTML=`<div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">Рейтинг FOUNDERS</p></div></div><p class="note">Команд пока нет — рейтинг появится после первого турнира. Хотите участвовать? Пишите в Telegram <a href="https://t.me/asmodeuz000" target="_blank" rel="noopener" class="more-link">@asmodeuz000</a></p>`;return {}}
   $("#view").innerHTML=`
-    <div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">${foundersRankMode==="vrs"?"VRS · автоматически после каждого матча":"Ручной рейтинг · прежние данные"}</p></div></div>
-    <div class="tabs-s" style="margin-bottom:16px"><button id="rankVrs" class="${foundersRankMode==="vrs"?"is-active":""}">FOUNDERS VRS</button><button id="rankManual" class="${foundersRankMode==="manual"?"is-active":""}">Ручной рейтинг</button></div>
-    <div class="rk">${(foundersRankMode==="vrs"?foundersVRS():DATA.teams).map((t,i)=>{
-      const c=t.change>0?["up","▲"+t.change]:t.change<0?["down","▼"+(-t.change)]:["same","—"];
+    <div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">VRS · автоматически после каждого матча</p></div></div>
+    <div class="rk">${foundersVRS().map((t,i)=>{
+      const c=t.delta>0?["up","+"+t.delta]:t.delta<0?["down",String(t.delta)]:["same","—"];
       return `<div class="rk__row" style="--i:${i}">
         <span class="rk__pos">${String(t.pos).padStart(2,"0")}</span>${badge(t)}
         <a class="cover" href="#/team/${t.id}" aria-label="${esc(t.name)}"></a><a href="#/team/${t.id}" class="rk__name tlink">${esc(t.name)}<small>${flag(t.country)}${COUNTRY_NAMES[t.country]}</small></a>
         <div class="rk__roster">${startersOf(t).map(({p,i})=>playerProfileLink(t.id,i,p[0],esc(p[0]))).join("")}</div>
         <div class="rk__pts">${t.pts}<small>очков</small></div>
-        <span class="rank__chg ${c[0]}" style="text-align:right">${foundersRankMode==="vrs"?(t.delta>0?"+":"")+t.delta:c[1]}</span></div>`}).join("")}</div>`;
-  $("#rankVrs").onclick=()=>{foundersRankMode="vrs";viewRank()};$("#rankManual").onclick=()=>{foundersRankMode="manual";viewRank()};
+        <span class="rank__chg ${c[0]}" style="text-align:right">${(t.delta>0?"+":"")+t.delta}</span></div>`}).join("")}</div>`;
   return {};
 }
 
@@ -3008,7 +3005,7 @@ function viewTeam(id){
           <div style="margin-top:16px">${followBtn(t.id)}</div>${socialsHtml}
         </div>
         <div class="facts">
-          <div class="fact"><small>Рейтинг FOUNDERS</small><b>#${t.pos} <span class="rank__chg ${t.change>0?"up":t.change<0?"down":"same"}">${t.change>0?"▲"+t.change:t.change<0?"▼"+(-t.change):"—"}</span></b></div>
+          <div class="fact"><small>Рейтинг FOUNDERS</small><b>#${t.pos} <span class="rank__chg ${t.delta>0?"up":t.delta<0?"down":"same"}">${t.delta>0?"+"+t.delta:t.delta<0?String(t.delta):"—"}</span></b></div>
           <div class="fact"><small>Очки рейтинга</small><b data-count="${t.pts}">0</b></div>
           <div class="fact"><small>Матчей сыграно</small><b data-count="${done.length}">0</b></div>
           <div class="fact"><small>Побед</small><b data-count="${wins}">0</b></div>
@@ -3123,6 +3120,9 @@ function viewPlayer(tid,i){
 }
 
 function reindex(){
+  const ranks=foundersVRS();
+  const lookup=Object.fromEntries(DATA.teams.map(t=>[t.id,t]));
+  for(const r of ranks){const t=lookup[r.id];t.pos=r.pos;t.pts=r.pts;t.change=0;t.delta=r.delta;}
   DATA.teams.sort((a,b)=>a.pos-b.pos);
   team=Object.fromEntries(DATA.teams.map(t=>[t.id,t]));
   evt=Object.fromEntries(DATA.events.map(e=>[e.id,e]));
@@ -3507,16 +3507,13 @@ function admTeams(el){
 }
 function editTeam(t){
   const isNew=!t;
-  const d=t||{name:"",short:"",color:"#5b8cff",country:"SE",pos:DATA.teams.length+1,change:0,pts:500,players:[0,1,2,3,4].map(i=>["player"+(i+1),"",""+"SE"])};
+  const d=t||{name:"",short:"",color:"#5b8cff",country:"SE",pos:DATA.teams.length+1,change:0,pts:0,players:[0,1,2,3,4].map(i=>["player"+(i+1),"",""+"SE"])};
   const coach=(d.coach||COACHES[d.id]||["","SE"]);
   openModal(isNew?"Новая команда":"Редактировать команду",`<div class="fgrid">
     <label class="f"><span>Название</span><input class="inp" name="name" value="${esc(d.name)}" maxlength="30"></label>
     <label class="f"><span>Сокращение (2–3 буквы)</span><input class="inp" name="short" value="${esc(d.short)}" maxlength="3" style="text-transform:uppercase"></label>
     <label class="f"><span>Цвет команды</span><input class="inp" type="color" name="color" value="${esc(d.color)}"></label>
     <label class="f"><span>Страна</span><select class="inp" name="country">${countryOpts(d.country)}</select></label>
-    <label class="f"><span>Место в рейтинге</span><input class="inp" type="number" min="1" name="pos" value="${d.pos}"></label>
-    <label class="f"><span>Очки рейтинга</span><input class="inp" type="number" min="0" name="pts" value="${d.pts}"></label>
-    <label class="f"><span>Изменение позиции (+/−)</span><input class="inp" type="number" name="change" value="${d.change}"></label>
     <label class="f"><span>Тренер</span><input class="inp" name="coach" value="${esc(coach[0])}" placeholder="Имя 'ник' Фамилия"></label>
     ${imgField("logo",d.logo,{max:256,png:true,label:"Логотип (необязательно)"})}
   </div>
@@ -3546,7 +3543,7 @@ function editTeam(t){
     o.bg=bgType?{type:bgType,pattern:val(f,"bgPattern"),c2:val(f,"bgC2"),dim:+val(f,"bgDim"),image:safeUrl(val(f,"bgImage"))||""}:undefined;
     if(bgType==="image"&&!o.bg.image)return "Загрузите картинку фона или выберите другой тип";
     o.theme=!!val(f,"theme");
-    Object.assign(o,{name,short,color:val(f,"color"),country:val(f,"country"),pos:Math.max(1,+val(f,"pos")||1),pts:+val(f,"pts")||0,change:+val(f,"change")||0,players,coach:[val(f,"coach")||"—",val(f,"country")],logo:safeUrl(val(f,"logo"))||""});
+    Object.assign(o,{name,short,color:val(f,"color"),country:val(f,"country"),players,coach:[val(f,"coach")||"—",val(f,"country")],logo:safeUrl(val(f,"logo"))||""});
     if(isNew)DATA.teams.push(o);
     saveData(isNew?"Команда добавлена":"Команда сохранена");drawAdmin();return null;
   },{onRender:f=>{
@@ -4257,7 +4254,7 @@ function viewOverlay(id){
 /* ================= ДЕМО-ДАННЫЕ ТУРНИРОВ ================= */
 function simulateStage(e,idx,seed){
   const st=e.stages[idx],r=rng(seed);
-  const pick=(a,b,bo)=>{const A=team[a],B=team[b],pa=1/(1+Math.pow(10,((B.pts||500)-(A.pts||500))/260)),aw=r()<pa;
+  const pick=(a,b,bo)=>{const A=team[a],B=team[b],pa=1/(1+Math.pow(10,((B.pts??0)-(A.pts??0))/260)),aw=r()<pa;
     const sc=bo===1?[13,3+Math.floor(r()*10)]:[Math.ceil(bo/2),Math.floor(r()*Math.ceil(bo/2))];return {state:"done",s1:aw?sc[0]:sc[1],s2:aw?sc[1]:sc[0]}};
   if(st.type==="swiss"){for(let k=0;k<8;k++){if(swissNext(e,st,idx))break;const ri=st.rounds.length;st.rounds[ri-1].forEach((m,mi)=>{if(m.b!=="BYE")st.res[`S${ri}-${mi+1}`]=pick(m.a,m.b,m.bo||st.bo)})}}
   else if(st.type==="single"||st.type==="double"){

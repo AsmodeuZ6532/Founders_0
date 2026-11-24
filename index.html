@@ -2117,13 +2117,20 @@ function currentScore(m,mi){
   if(m.live&&mi===m.mapScores.length)return [m.s1,m.s2];
   return null;
 }
+// Explicit lineups are stored per map; legacy reserve rows containing only zeros are placeholders.
+function playedMapStat(st,side,pi,pl){
+  const row=st?.[side]?.[pi];
+  if(st?.lineup===true)return !!row;
+  if(!row)return false;
+  return !isReservePlayer(pl)||Object.values(row).some(v=>Number.isFinite(Number(v))&&Number(v)!==0);
+}
 function rawMap(m,mi,side){
   const sc=currentScore(m,mi);if(!sc)return null;
   const R=sc[0]+sc[1];if(!R)return null;
   const st=m.stats&&m.stats[mi];if(!st)return null;
   return [1,2].map(k=>{
     const t=team[m["t"+k]];
-    return t.players.map((pl,pi)=>({pl,pi})).filter(({pl,pi})=>!isReservePlayer(pl)||!!(st["t"+k]||[])[pi]?.k).map(({pl,pi})=>{const man=(st["t"+k]||[])[pi]||{};
+    return t.players.map((pl,pi)=>({pl,pi})).filter(({pl,pi})=>playedMapStat(st,"t"+k,pi,pl)).map(({pl,pi})=>{const man=(st["t"+k]||[])[pi]||{};
       return {pi,nick:pl[0],real:pl[1],c:pl[2],k:+man.k||0,d:+man.d||0,a:+man.a||0,rounds:R,adr:+man.adr||0,kast:+man.kast||0,aim:man.aim==null?null:+man.aim,impact:man.impact==null?null:+man.impact,economy:man.economy==null?null:+man.economy,utility:man.utility==null?null:+man.utility,positioning:man.positioning==null?null:+man.positioning}});
   });
 }
@@ -2137,10 +2144,10 @@ function matchStats(m,which,side){
   const idxs=which==="all"?m.maps.map((_,i)=>i):[+which];
   const sets=idxs.map(i=>rawMap(m,i,side)).filter(Boolean);
   if(!sets.length)return null;
-  return [0,1].map(ti=>sets[0][ti].map((_,pi)=>{
-    const agg={...sets[0][ti][pi],k:0,d:0,a:0,rounds:0,adr:0,kast:0,aim:0,impact:0,economy:0,utility:0,positioning:0};
+  return [0,1].map(ti=>Array.from(new Map(sets.flatMap(s=>s[ti]).map(p=>[p.pi,p])).values()).map(player=>{
+    const agg={...player,k:0,d:0,a:0,rounds:0,adr:0,kast:0,aim:0,impact:0,economy:0,utility:0,positioning:0};
     const detailN={aim:0,impact:0,economy:0,utility:0,positioning:0};
-    sets.forEach(s=>{const p=s[ti][pi];agg.k+=p.k;agg.d+=p.d;agg.a+=p.a||0;agg.rounds+=p.rounds;agg.adr+=p.adr*p.rounds;agg.kast+=p.kast*p.rounds;
+    sets.forEach(s=>{const p=s[ti].find(p=>p.pi===player.pi);if(!p)return;agg.k+=p.k;agg.d+=p.d;agg.a+=p.a||0;agg.rounds+=p.rounds;agg.adr+=p.adr*p.rounds;agg.kast+=p.kast*p.rounds;
       for(const f of Object.keys(detailN)){if(p[f]!=null){agg[f]+=p[f]*p.rounds;detailN[f]+=p.rounds}}
     });
     agg.adr/=agg.rounds;agg.kast/=agg.rounds;
@@ -2944,7 +2951,7 @@ function playerInfo(t,i){
   DATA.matches.slice().sort((a,b)=>a.id-b.id).forEach(m=>{
     const side=m.t1===t.id?"t1":m.t2===t.id?"t2":null;if(!side||!m.stats||!m.mapScores)return;
     m.mapScores.forEach((sc,mi)=>{
-      const st=m.stats[mi]&&m.stats[mi][side]&&m.stats[mi][side][i];if(!st)return;
+      const mapStat=m.stats[mi];if(!playedMapStat(mapStat,side,i,t.players[i]))return;const st=mapStat[side][i];
       const R=(+sc[0]||0)+(+sc[1]||0);if(!R)return;
       const kk=+st.k||0,dd=+st.d||0,a=+st.adr||0,ks=+st.kast||0;
       maps++;k+=kk;d+=dd;rounds+=R;adrS+=a*R;kastS+=ks*R;
@@ -3365,6 +3372,14 @@ function editMatch(m){
       stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[])),cybershokeUrl:m.cybershokeUrl||""}
     :{t1,t2,event:DATA.events[0].id,bo:3,date:"",time:"18:00",status:"soon",technical:0,noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
   if(!em.veto.length)em.veto=vetoPlan(em.bo,1,2).map(([side,action],i)=>({side,action,map:MAP_POOL[i]}));
+  const blankStat=()=>({k:0,d:0,a:0,adr:0,kast:0,swing:"",aim:"",impact:"",economy:"",utility:"",positioning:""});
+  const excludedStats={};
+  // Preserve existing recorded numbers while converting legacy placeholders.
+  Object.values(em.stats).forEach(st=>{
+    if(!st||st.lineup===true)return;
+    for(const k of [1,2]){const side="t"+k;const t=team[em[side]];st[side]=t.players.map((p,pi)=>playedMapStat(st,side,pi,p)?st[side][pi]:null)}
+    st.lineup=true;
+  });
   const mapsOf=()=>{
     if(em.technical)return [];
     if(em.noVeto)return Array.from({length:em.bo===3?3:1},()=>({name:"TBD",side:0}));
@@ -3410,8 +3425,8 @@ function editMatch(m){
     <div class="sec"><div class="sec__h"><h4>Статистика игроков</h4><small>K / D / A, ADR, KAST, SWING и оценки 0–100</small></div>
       ${maps.map((mp,i)=>{const r=em.rows[i];if(r.state==="none")return "";const on=!!em.stats[i];
         return `<div class="stat-ed"><label class="chk"><input type="checkbox" data-act="stat" data-i="${i}" ${on?"checked":""}> ${mp.name}: своя статистика</label>
-        ${on?[1,2].map(k=>{const t=team[k===1?em.t1:em.t2];return `<div class="cs-stats-scroll" role="region" aria-label="Статистика ${esc(t.name)}" tabindex="0"><table class="cs-stats-table" style="margin-top:10px"><thead><tr><th>${esc(t.name)}</th><th>K</th><th>D</th><th>A</th><th>ADR</th><th>KAST %</th><th>SWING</th><th>AIM</th><th>IMPACT</th><th>ECONOMY</th><th>UTILITY</th><th>POSITIONING</th></tr></thead><tbody>
-          ${t.players.map((p,pi)=>({p,pi})).filter(({p})=>!isReservePlayer(p)).map(({p,pi})=>{const s=em.stats[i]["t"+k][pi]||{k:0,d:0,a:0,adr:0,kast:0,swing:"",aim:"",impact:"",economy:"",utility:"",positioning:""};return `<tr><td>${esc(p[0])}</td>${["k","d","a","adr","kast","swing","aim","impact","economy","utility","positioning"].map(f=>`<td><input class="inp inp--s" type="number" min="${f==="swing"?-100:0}" step="${["adr","kast","swing"].includes(f)?"0.1":"1"}" max="${["aim","impact","economy","utility","positioning","kast"].includes(f)?100:999}" data-k="stats.${i}.t${k}.${pi}.${f}" data-num value="${s[f]??""}" style="width:68px"></td>`).join("")}</tr>`}).join("")}</tbody></table></div>`}).join(""):""}</div>`}).join("")||`<p style="color:var(--muted);font-size:13px">Сначала отметьте хотя бы одну карту как «Идёт» или «Сыграна».</p>`}
+        ${on?[1,2].map(k=>{const t=team[k===1?em.t1:em.t2],side="t"+k,entries=em.stats[i][side]||[];return `<div style="margin-top:12px"><b>${esc(t.name)} · Игроки на карте (${t.players.filter((_,pi)=>!!entries[pi]).length})</b><div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0">${t.players.map((p,pi)=>`<label class="chk"><input type="checkbox" data-act="lineup" data-i="${i}" data-side="${k}" data-pi="${pi}" ${entries[pi]?"checked":""}> ${esc(p[0])}${isReservePlayer(p)?" (запас)":""}</label>`).join("")}</div><small>Отметьте только игроков, участвовавших на этой карте.</small></div><div class="cs-stats-scroll" role="region" aria-label="Статистика ${esc(t.name)}" tabindex="0"><table class="cs-stats-table" style="margin-top:10px"><thead><tr><th>${esc(t.name)}</th><th>K</th><th>D</th><th>A</th><th>ADR</th><th>KAST %</th><th>SWING</th><th>AIM</th><th>IMPACT</th><th>ECONOMY</th><th>UTILITY</th><th>POSITIONING</th></tr></thead><tbody>
+          ${t.players.map((p,pi)=>({p,pi})).filter(({pi})=>!!entries[pi]).map(({p,pi})=>{const s=entries[pi]||{k:0,d:0,a:0,adr:0,kast:0,swing:"",aim:"",impact:"",economy:"",utility:"",positioning:""};return `<tr><td>${esc(p[0])}</td>${["k","d","a","adr","kast","swing","aim","impact","economy","utility","positioning"].map(f=>`<td><input class="inp inp--s" type="number" min="${f==="swing"?-100:0}" step="${["adr","kast","swing"].includes(f)?"0.1":"1"}" max="${["aim","impact","economy","utility","positioning","kast"].includes(f)?100:999}" data-k="stats.${i}.t${k}.${pi}.${f}" data-num value="${s[f]??""}" style="width:68px"></td>`).join("")}</tr>`}).join("")}</tbody></table></div>`}).join(""):""}</div>`}).join("")||`<p style="color:var(--muted);font-size:13px">Сначала отметьте хотя бы одну карту как «Идёт» или «Сыграна».</p>`}
     </div>
     <div class="sec"><div class="sec__h"><h4>Трансляции</h4><button type="button" class="btn-sm" data-act="addstream">+ Добавить трансляцию</button></div>
       ${em.streams.length?em.streams.map((s,i)=>`<div class="srow">
@@ -3473,9 +3488,17 @@ function editMatch(m){
         if(k.startsWith("veto")||k==="t1"||k==="t2"){em.stats={}}
         if(t.hasAttribute("data-re"))rerender();
       }
+      if(t.dataset.act==="lineup"){
+        const i=+t.dataset.i,side="t"+t.dataset.side,pi=+t.dataset.pi;
+        const list=em.stats[i]?.[side];if(!list)return;
+        const key=`${i}:${side}:${pi}`;
+        if(t.checked){list[pi]=excludedStats[key]?.owner===em.stats[i]?excludedStats[key].row:blankStat()}
+        else {excludedStats[key]={owner:em.stats[i],row:list[pi]};list[pi]=null}
+        rerender();return;
+      }
       if(t.dataset.act==="stat"){
         const i=+t.dataset.i;
-        if(t.checked){const r=em.rows[i],R=(+r.a||0)+(+r.b||0)||20;em.stats[i]={t1:Array.from({length:team[em.t1].players.length},()=>({k:0,d:0,a:0,adr:0,kast:0,swing:0,aim:0,impact:0,economy:0,utility:0,positioning:0})),t2:Array.from({length:team[em.t2].players.length},()=>({k:0,d:0,a:0,adr:0,kast:0,swing:0,aim:0,impact:0,economy:0,utility:0,positioning:0}))}}
+        if(t.checked){em.stats[i]={lineup:true,t1:team[em.t1].players.map(p=>isReservePlayer(p)?null:blankStat()),t2:team[em.t2].players.map(p=>isReservePlayer(p)?null:blankStat())}}
         else delete em.stats[i];
         rerender();
       }

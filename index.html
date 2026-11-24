@@ -2719,7 +2719,7 @@ function viewMatch(id){
       const w1=m.maps1>m.maps2;
       mid=`<div class="mh__big"><span class="${w1?"w":""}">${m.maps1}</span><i>:</i><span class="${w1?"":"w"}">${m.maps2}</span></div>
         <div class="mh__date">${m.date?fmtDate(new Date(m.date+'T12:00:00')):fmtDate(new Date())}</div><a href="#/event/${ev.id}" class="mh__ev">${esc(ev.name)}</a>
-        <div class="mh__status">Матч завершён</div>`;
+        <div class="mh__status">${m.technical?"Техническая победа (ТП)":"Матч завершён"}</div>`;
     }else{
       const s=startsIn(m);
       mid=`<div class="mh__big">${m.time}</div>
@@ -2776,7 +2776,7 @@ function viewMatch(id){
   };
   const stats=()=>{
     const data=matchStats(m,st.tab,st.side);
-    if(!data){$("#mStats").innerHTML=`<div class="note">Статистика появится после начала матча</div>`;return}
+    if(!data){$("#mStats").innerHTML=`<div class="note">${m.technical?"Технический результат — статистика не начисляется":"Статистика появится после начала матча"}</div>`;return}
     $("#mStats").innerHTML=[a,b].map((t,ti)=>`<div class="tbl-wrap"><table class="stbl">
       <thead><tr><th><a href="#/team/${t.id}" class="tlink">${badge(t)}${esc(t.name)}</a></th><th>K/D/A</th><th>SWING</th><th>ADR</th><th>RATING</th></tr></thead>
       <tbody>${data[ti].map(p=>`<tr>
@@ -2872,18 +2872,35 @@ function viewEvents(){
 }
 
 /* ================= СТРАНИЦА: РЕЙТИНГ ================= */
+// Rank and point difference are measured before each match; tied points share a rank.
+function vrsAward(d,rank,technical){
+  if(technical)return [5,25];
+  if(Math.abs(d)<=25)return [25,20];
+  if(d>25)return rank<=5?[40,10]:rank<=10?[30,15]:[25,20];
+  return d>=-75?[15,25]:[10,30];
+}
+function foundersVRS(){
+  const pts=Object.fromEntries(DATA.teams.map(t=>[t.id,0]));
+  const changes={};
+  const matches=DATA.matches.filter(m=>m.done&&!m.live&&m.maps1!==m.maps2&&Object.hasOwn(pts,m.t1)&&Object.hasOwn(pts,m.t2)).slice().sort((a,b)=>String(a.completedAt||a.date||"0000").localeCompare(String(b.completedAt||b.date||"0000"))||a.id-b.id);
+  for(const m of matches){const w=m.maps1>m.maps2?m.t1:m.t2,l=w===m.t1?m.t2:m.t1,d=pts[l]-pts[w];const rank=1+Object.values(pts).filter(p=>p>pts[l]).length;const [gain,loss]=vrsAward(d,rank,m.technical);const old=pts[l];pts[w]+=gain;pts[l]=Math.max(0,old-loss);changes[w]=gain;changes[l]=pts[l]-old;}
+  return DATA.teams.map(t=>({...t,pts:pts[t.id],delta:changes[t.id]||0})).sort((a,b)=>b.pts-a.pts||a.name.localeCompare(b.name)).map((t,i)=>({...t,pos:i+1}));
+}
+let foundersRankMode="vrs";
 function viewRank(){
   if(!DATA.teams.length){$("#view").innerHTML=`<div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">Рейтинг FOUNDERS</p></div></div><p class="note">Команд пока нет — рейтинг появится после первого турнира. Хотите участвовать? Пишите в Telegram <a href="https://t.me/asmodeuz000" target="_blank" rel="noopener" class="more-link">@asmodeuz000</a></p>`;return {}}
   $("#view").innerHTML=`
-    <div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">Обновлено ${fmtDate(new Date())}</p></div></div>
-    <div class="rk">${DATA.teams.map((t,i)=>{
+    <div style="margin-top:28px" class="page-head"><div><h1 class="page-title">Рейтинг команд</h1><p class="page-sub">${foundersRankMode==="vrs"?"VRS · автоматически после каждого матча":"Ручной рейтинг · прежние данные"}</p></div></div>
+    <div class="tabs-s" style="margin-bottom:16px"><button id="rankVrs" class="${foundersRankMode==="vrs"?"is-active":""}">FOUNDERS VRS</button><button id="rankManual" class="${foundersRankMode==="manual"?"is-active":""}">Ручной рейтинг</button></div>
+    <div class="rk">${(foundersRankMode==="vrs"?foundersVRS():DATA.teams).map((t,i)=>{
       const c=t.change>0?["up","▲"+t.change]:t.change<0?["down","▼"+(-t.change)]:["same","—"];
       return `<div class="rk__row" style="--i:${i}">
         <span class="rk__pos">${String(t.pos).padStart(2,"0")}</span>${badge(t)}
         <a class="cover" href="#/team/${t.id}" aria-label="${esc(t.name)}"></a><a href="#/team/${t.id}" class="rk__name tlink">${esc(t.name)}<small>${flag(t.country)}${COUNTRY_NAMES[t.country]}</small></a>
         <div class="rk__roster">${startersOf(t).map(({p,i})=>playerProfileLink(t.id,i,p[0],esc(p[0]))).join("")}</div>
         <div class="rk__pts">${t.pts}<small>очков</small></div>
-        <span class="rank__chg ${c[0]}" style="text-align:right">${c[1]}</span></div>`}).join("")}</div>`;
+        <span class="rank__chg ${c[0]}" style="text-align:right">${foundersRankMode==="vrs"?(t.delta>0?"+":"")+t.delta:c[1]}</span></div>`}).join("")}</div>`;
+  $("#rankVrs").onclick=()=>{foundersRankMode="vrs";viewRank()};$("#rankManual").onclick=()=>{foundersRankMode="manual";viewRank()};
   return {};
 }
 
@@ -3325,7 +3342,7 @@ function editNews(i){
 
 /* ---------- Матчи ---------- */
 function admMatches(el){
-  const st=m=>m.live?`<span class="pill-s live">LIVE</span>`:m.done?`<span class="pill-s done">Завершён</span>`:`<span class="pill-s">Скоро</span>`;
+  const st=m=>m.technical?`<span class="pill-s done">ТП ${m.maps1}:${m.maps2}</span>`:m.live?`<span class="pill-s live">LIVE</span>`:m.done?`<span class="pill-s done">Завершён</span>`:`<span class="pill-s">Скоро</span>`;
   el.innerHTML=admHead("Матчи",`<button class="btn-sm btn-sm--lime" id="addMatch">+ Добавить матч</button>`)+
     `<div class="adm__warn">Можно сохранить будущий матч без вето. Когда карты будут выбраны, вернитесь к матчу и добавьте вето. Также доступны счёт карт, LIVE, статистика игроков и трансляции. Если статистику не заполнять, она считается автоматически.</div>
     <div class="alist">${DATA.matches.map((m,i)=>{const a=team[m.t1],b=team[m.t2];return `<div class="arow" style="--i:${i}">
@@ -3342,12 +3359,14 @@ function vetoPlan(bo,a,b){
 function editMatch(m){
   const isNew=!m;
   const t1=m?m.t1:DATA.teams[0].id,t2=m?m.t2:DATA.teams[1].id;
-  const em=m?{t1,t2,event:m.event,bo:m.bo,date:m.date||"",time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",noVeto:!!m.noVeto||!m.veto?.length,
+  const em=m?{t1,t2,event:m.event,bo:m.bo,date:m.date||"",time:m.time||"18:00",status:m.live?"live":m.done?"done":"soon",technical:m.technical||0,noVeto:!!m.noVeto||!m.veto?.length,
       veto:(m.veto||[]).map(v=>({side:v.team===m.t1?1:2,action:v.action,map:v.map})),
       rows:m.maps.map((_,i)=>i<m.mapScores.length?{state:"done",a:m.mapScores[i][0],b:m.mapScores[i][1]}:(m.live&&i===m.mapScores.length?{state:"live",a:m.s1,b:m.s2}:{state:"none",a:"",b:""})),
       stats:JSON.parse(JSON.stringify(m.stats||{})),streams:JSON.parse(JSON.stringify(m.streams||[])),cybershokeUrl:m.cybershokeUrl||""}
-    :{t1,t2,event:DATA.events[0].id,bo:3,date:"",time:"18:00",status:"soon",noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
+    :{t1,t2,event:DATA.events[0].id,bo:3,date:"",time:"18:00",status:"soon",technical:0,noVeto:true,veto:vetoPlan(3,1,2).map(([s,a],i)=>({side:s,action:a,map:MAP_POOL[i]})),rows:[],stats:{},streams:[],cybershokeUrl:""};
+  if(!em.veto.length)em.veto=vetoPlan(em.bo,1,2).map(([side,action],i)=>({side,action,map:MAP_POOL[i]}));
   const mapsOf=()=>{
+    if(em.technical)return [];
     if(em.noVeto)return Array.from({length:em.bo===3?3:1},()=>({name:"TBD",side:0}));
     const picks=em.veto.filter(v=>v.action==="pick").map(v=>({name:v.map,side:v.side}));
     const used=new Set(em.veto.map(v=>v.map));const dec=MAP_POOL.find(x=>!used.has(x))||"—";
@@ -3370,14 +3389,15 @@ function editMatch(m){
       <label class="f"><span>Статус</span><select class="inp" data-k="status" data-re>${opt([["soon","Скоро"],["live","Идёт (LIVE)"],["done","Завершён"]],em.status)}</select></label>
     </div>
     <div class="sec"><div class="sec__h"><h4>Вето — баны и пики</h4><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn-sm ${em.noVeto?"btn-sm--lime":""}" data-act="noveto">${em.noVeto?"✓ Без вето":"Без вето"}</button><button type="button" class="btn-sm" data-act="autoveto">Случайное вето</button></div></div>
-      ${em.noVeto?`<p class="cs-import__note">Матч можно сохранить без вето. Карты будут определены позже; для выбора карт отключите «Без вето».</p>`:em.veto.map((v,i)=>`<div class="vrow"><b>${i+1}</b>
+      ${em.technical?`<p class="cs-import__note">При техническом результате вето не требуется.</p>`:em.noVeto?`<p class="cs-import__note">Матч можно сохранить без вето. Карты будут определены позже; для выбора карт отключите «Без вето».</p>`:em.veto.map((v,i)=>`<div class="vrow"><b>${i+1}</b>
         <select class="inp inp--s" data-k="veto.${i}.side" data-num data-re>${opt([[1,team[em.t1].name],[2,team[em.t2].name]],v.side)}</select>
         <select class="inp inp--s" data-k="veto.${i}.action" data-re>${opt(em.bo===3?[["ban","убрали"],["pick","выбрали"]]:[["ban","убрали"]],v.action)}</select>
         <select class="inp inp--s" data-k="veto.${i}.map" data-re>${opt(MAP_POOL.map(x=>[x,x]),v.map)}</select></div>`).join("")}
-      ${em.noVeto?"":`<p style="font-size:12px;color:${dup?"var(--lose)":"var(--muted)"};margin-top:6px">${dup?"Карты в вето повторяются — у каждой строки должна быть своя карта":`Решающая карта: <b style="color:var(--text)">${maps[maps.length-1].name}</b>`}</p>`}
+      ${em.noVeto||em.technical?"":`<p style="font-size:12px;color:${dup?"var(--lose)":"var(--muted)"};margin-top:6px">${dup?"Карты в вето повторяются — у каждой строки должна быть своя карта":`Решающая карта: <b style="color:var(--text)">${maps[maps.length-1].name}</b>`}</p>`}
     </div>
     <div class="sec"><div class="sec__h"><h4>Результаты карт</h4><small>Общий счёт по картам посчитается сам</small></div>
-      ${em.noVeto?`<p class="cs-import__note">Карты пока неизвестны. После проведения вето здесь можно будет внести результаты.</p>`:maps.map((mp,i)=>{const r=em.rows[i];return `<div class="mrow-ed"><b>${mp.name}${mp.side?` <span class="pick" style="margin-left:4px">${nm(mp.side)}</span>`:""}</b>
+      <label class="f"><span>Тип результата</span><select class="inp" data-k="technical" data-num data-re>${opt([[0,"Обычный матч"],[1,"ТП команды 2 — 1:0"],[2,"ТП команды 1 — 0:1"]],em.technical)}</select></label>
+      ${em.technical?`<p class="cs-import__note">Технический результат: ${em.technical===1?"1:0":"0:1"}. Карты и статистика не начисляются.</p>`:em.noVeto?`<p class="cs-import__note">Карты пока неизвестны. После проведения вето здесь можно будет внести результаты.</p>`:maps.map((mp,i)=>{const r=em.rows[i];return `<div class="mrow-ed"><b>${mp.name}${mp.side?` <span class="pick" style="margin-left:4px">${nm(mp.side)}</span>`:""}</b>
         <select class="inp inp--s" data-k="rows.${i}.state" data-re>${opt([["none","Не сыграна"],["live","Идёт сейчас"],["done","Сыграна"]],r.state)}</select>
         <input class="inp inp--s" type="number" min="0" max="40" placeholder="${nm(1)}" data-k="rows.${i}.a" data-num value="${r.a}" ${r.state==="none"?"disabled":""}>
         <i>:</i>
@@ -3408,8 +3428,8 @@ function editMatch(m){
   const setPath=(path,v)=>{const ks=path.split(".");let o=em;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks[ks.length-1]]=v};
   openModal(isNew?"Новый матч":"Редактировать матч",body,()=>{
     if(em.t1===em.t2)return "Выберите две разные команды";
-    if(!em.noVeto&&new Set(em.veto.map(v=>v.map)).size!==em.veto.length)return "В вето повторяются карты";
-    if(em.noVeto&&em.status!=="soon")return "Без вето можно сохранить только предстоящий матч";
+    if(!em.technical&&!em.noVeto&&new Set(em.veto.map(v=>v.map)).size!==em.veto.length)return "В вето повторяются карты";
+    if(!em.technical&&em.noVeto&&em.status!=="soon")return "Без вето можно сохранить только предстоящий матч";
     if(em.date&&!/^\d{4}-\d{2}-\d{2}$/.test(em.date))return "Укажите корректную дату матча";
     if(!/^\d{2}:\d{2}$/.test(em.time))return "Укажите время в формате ЧЧ:ММ";
     const maps=mapsOf();
@@ -3422,14 +3442,17 @@ function editMatch(m){
     if(em.status!=="live"&&rows.some(r=>r.state==="live"))return "Карта «идёт сейчас» есть только у LIVE-матча";
     const tgt=m||{id:Math.max(0,...DATA.matches.map(x=>x.id))+1};
     tgt.t1=em.t1;tgt.t2=em.t2;tgt.event=em.event;tgt.bo=em.bo;tgt.date=em.date||"";tgt.time=em.time;
-    tgt.noVeto=!!em.noVeto;
-    tgt.veto=em.noVeto?[]:em.veto.map(v=>({team:v.side===1?em.t1:em.t2,action:v.action,map:v.map}));
-    tgt.decider=em.noVeto?"TBD":maps[maps.length-1].name;
+    tgt.technical=em.technical||0;
+    tgt.noVeto=!!em.noVeto||!!em.technical;
+    tgt.veto=tgt.noVeto?[]:em.veto.map(v=>({team:v.side===1?em.t1:em.t2,action:v.action,map:v.map}));
+    tgt.decider=tgt.noVeto?"TBD":maps[maps.length-1].name;
     tgt.maps=maps.map(x=>({name:x.name,pick:x.side?(x.side===1?em.t1:em.t2):null}));
     tgt.mapScores=doneRows.map(r=>[+r.a,+r.b]);
     tgt.maps1=tgt.mapScores.filter(s=>s[0]>s[1]).length;tgt.maps2=tgt.mapScores.length-tgt.maps1;
     const lr=rows.find(r=>r.state==="live");
-    tgt.live=em.status==="live";tgt.done=em.status==="done";
+    tgt.live=!em.technical&&em.status==="live";tgt.done=!!em.technical||em.status==="done";
+    if(em.technical){tgt.maps1=em.technical===1?1:0;tgt.maps2=em.technical===2?1:0;}
+    if(tgt.done)tgt.completedAt=tgt.completedAt||new Date().toISOString();else delete tgt.completedAt;
     tgt.s1=tgt.live&&lr?+lr.a||0:0;tgt.s2=tgt.live&&lr?+lr.b||0:0;
     const stats={};Object.keys(em.stats).forEach(i=>{if(rows[i]&&rows[i].state!=="none")stats[i]=em.stats[i]});tgt.stats=stats;
     tgt.cybershokeUrl=/^https:\/\/(?:[a-z0-9-]+\.)*cybershoke\.(?:net|ru)\//i.test((em.cybershokeUrl||"").trim())?(em.cybershokeUrl||"").trim():"";
@@ -3443,6 +3466,7 @@ function editMatch(m){
       const t=e.target,k=t.dataset.k;
       if(k&&(t.tagName==="SELECT"||t.type==="checkbox")){
         let v=t.type==="checkbox"?t.checked:t.dataset.num!==undefined?+t.value:t.value;setPath(k,v);
+        if(k==="technical"&&v){em.status="done";em.noVeto=true;em.rows=[];em.stats={}}
         if(k==="bo"){em.veto=vetoPlan(em.bo,1,2).map(([s,a],i)=>({side:s,action:a,map:em.veto[i]?.map||MAP_POOL[i]}));em.rows=[];em.stats={}}
         if(k==="status"&&v!=="live")em.rows.forEach(r=>{if(r.state==="live")r.state="none"});
         if(/^rows\.\d+\.state$/.test(k)&&v==="none"){const i=+k.split(".")[1];em.rows[i].a="";em.rows[i].b="";delete em.stats[i]}
